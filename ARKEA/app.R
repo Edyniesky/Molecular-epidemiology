@@ -40,7 +40,7 @@ library(d3heatmap)
 
 metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
 
-## Selection of the Pongo lineage
+## Selection of the Pongo lineage ///
 pongo <- (metadata) %>%
     filter(Country == "Brazil") %>% 
     select(`PANGO Lineage`) %>% 
