@@ -101,6 +101,14 @@ t <- metadata %>%
   rename(data = `Collection Data`, total = n, Linage = `PANGO Lineage`) %>% 
   print()
   
+pongo <- (metadata) %>%
+  filter(Country == "Brazil") %>% 
+  select(`PANGO Lineage`) %>% 
+  distinct(`PANGO Lineage`) %>% 
+  as.vector() %>% 
+  print()
+
+
 
 ti <- t  %>% 
   ggplot(aes(x = data, y  = total, fill = Linage, text = Linage)) + 
@@ -194,7 +202,7 @@ mat[] <- lapply(colnames(mat), function(colname) {
 })
 
 
-heatmaply(
+d3heatmap(
   t1,
   seriate = "mean",
   scale_fill_gradient_fun = ggplot2::scale_fill_gradient2(
@@ -210,6 +218,10 @@ heatmaply(
   ylab = "Linhagem (Pongo)", 
   main = "Número de linhagens por estados da Federação",
 )
+
+
+d3heatmap(t1)
+
 
 
 
