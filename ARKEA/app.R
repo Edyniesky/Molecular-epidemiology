@@ -32,15 +32,16 @@ library(ggstream)
 library(viridis)
 library(hrbrthemes)
 library(d3heatmap)
+library(RColorBrewer)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
 
 
 
-metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
+metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
 
-## Selection of the Pongo lineage ///
+## Selection of the Pongo lineage
 pongo <- (metadata) %>%
     filter(Country == "Brazil") %>% 
     select(`PANGO Lineage`) %>% 
@@ -97,35 +98,55 @@ server <- function(input, output) {
     
     output$plot2 <-  renderD3heatmap({
         
-        mat <- dataPong2
-        mat[] <- paste("Esta célula é: Linhagem (Pongo) ", rownames(mat))
-        mat[] <- lapply(colnames(mat), function(colname) {
-            paste0(mat[, colname], ", ", colname)
-        })
-        
-        #col<- colorRampPalette(c("red", "white", "blue"))(256)
-        library("RColorBrewer")
-        #col <- colorRampPalette(brewer.pal(6, "RdYlBu"))(256)
-    
-        d3heatmap(
+       plot2i <- d3heatmap(
             dataPong2,
-            colors = colorRampPalette(rev(brewer.pal(20, "PRGn")))(256),
+            colors = colorRampPalette(rev(brewer.pal(11, "PRGn")))(256),
             revC = TRUE,
             scale = 'none',
             k_col = 4,
-            k_row = 3,
+            k_row = 4,
             show_grid = FALSE,
             #cexRow = 1,
             cexCol = 0.75,
             digits = 20,
-            theme = "dark"
-            #RowSideColors = rep(c("blue", "pink"), each = 16),
-            #ColSideColors = c(rep("purple", 5), rep("orange", 6)),
-            #xlab = "Estados da Federação",
-            #ylab = "Linhagem (Pongo)", 
-            #main = "Número de linhagens por estados da Federação")
-        )
+            theme = "dark")
+       
+       #if (input$grid) {
+        #   plot2i <- plot2i + d3heatmap(dataPong2, show_grid = TRUE)
+       #}
+       
     })
+    
+    
+    
+    utput$Res3 <- renderUI({
+        
+        metadata %>% 
+            clean_names() %>% 
+            filter(region != "Alexandr Shevtsov et al") %>% 
+            select(region, country, pango_lineage) %>% 
+            group_by(region, country) %>% 
+            count(pango_lineage) %>% 
+            ungroup() %>% 
+            group_nest(region, country) %>% 
+            mutate(
+                mean = map(data, ~round(mean(.x$n), digits = 2)),
+                sd = map(data, ~round(sd(.x$n), digits = 1)),
+                fig = map(data, ~spk_chr(.x$n, type = 'box', boxFillColor = '#FFF8DC', lineWidth = 1.5))) %>% 
+            unnest(c(data, mean, sd, fig)) %>% 
+            rename(Região = region, País = country, `Número total de seqüências` = n, 
+                   Média = mean, `Desvio padrão` = sd, `Distribuição dos dados` = fig, Linhagens = pango_lineage) %>% 
+            format_table(align = c('l', 'l', 'l', 'c', 'c', 'c', 'r')) %>% 
+            htmltools::HTML() %>%
+            div() %>%
+            spk_add_deps() %>%
+            {column(width = 12, .)}
+        
+        res3
+        
+    })
+    
+    
     
     
      }
@@ -175,7 +196,7 @@ sidebar <- dashboardSidebar(
                 start = '2020-02-25',
                 end = '2020-12-01',
                 min = '2020-02-25',
-                max = '2021-03-15',
+                max = '2021-04-08',
                 format = 'yyyy-mm-dd',
                 startview = 'year',
                 weekstart = 1,
@@ -183,7 +204,7 @@ sidebar <- dashboardSidebar(
                 separator = tags$strong('Até'),
                 width = '400px',
                 autoclose = TRUE
-            ),
+                ),
             tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
                         manualmente ou selecionadas</br> diretamente na caixa de diálogo."), 
                    style = "color:#000080")
@@ -238,6 +259,17 @@ body <- dashboardBody(
                         width = "100%", 
                         height = "585px"
                         )
+                    )
+                ),
+            
+            tabPanel(
+                title = "Estatística descritiva",
+                icon = icon('fas fa-chart-line'),
+                
+                box(
+                    width = 12,
+                    status = 'danger',
+                    solidHeader = FALSE
                     )
                 )
             )

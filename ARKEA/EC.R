@@ -231,3 +231,29 @@ est <- st_as_sf(est)
 Centroide <- st_centroid(est, of_largest_polygon = FALSE)
 
 Centroide <- as_tibble(Centroide)
+
+
+
+metadata %>% 
+  clean_names() %>% 
+  filter(region != "Alexandr Shevtsov et al") %>% 
+  select(region, country, pango_lineage) %>% 
+  group_by(region, country) %>% 
+  count(pango_lineage) %>% 
+  ungroup() %>% 
+  group_nest(region, country) %>% 
+  mutate(
+    mean = map(data, ~round(mean(.x$n), digits = 2)),
+    sd = map(data, ~round(sd(.x$n), digits = 1)),
+    fig = map(data, ~spk_chr(.x$n, type = 'box', boxFillColor = '#FFF8DC', lineWidth = 1.5))) %>% 
+  unnest(c(data, mean, sd, fig)) %>% 
+  rename(Região = region, País = country, `Número total de seqüências` = n, 
+         Média = mean, `Desvio padrão` = sd, `Distribuição dos dados` = fig, Linhagens = pango_lineage) %>% 
+  format_table(align = c('l', 'l', 'l', 'c', 'c', 'c', 'r')) %>% 
+  htmltools::HTML() %>%
+  div() %>%
+  spk_add_deps() %>%
+  {column(width = 12, .)}
+
+res3
+
