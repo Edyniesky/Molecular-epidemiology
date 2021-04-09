@@ -222,7 +222,7 @@ server <- function(input, output) {
                           opacity = 0.8,
                           width = 45, 
                           height = 45,
-                          legend = FALSE
+                          legend = TRUE
                           ) %>% 
             addScaleBar(position = "bottomleft") %>% 
             addEasyButton(easyButton(
@@ -247,14 +247,7 @@ header <- dashboardHeader(
         badgeText = "v0.0.1"
         ),
     
-    titleWidth = 360,
-    
-    tags$li(a(href = 'http://ufape.edu.br/',
-              img(src = "C:/Users/edyfe/Documents/Trabajo en andamiento/GitHub/ARKEA/ARKEA/Captura de pantalla 2021-04-09 183520.png",
-                  title = "Instituição Executora",
-                  height = "30px"),
-              style = "padding-top:10px; padding-bottom:10px;"),
-            class = "dropdown")
+    titleWidth = 360
 )
 
 
@@ -331,10 +324,10 @@ body <- dashboardBody(
     fluidPage(
         
         tabsetPanel(
-            selected = 'Dados espaciais',
+            selected = 'Frequência de Linhagem (PANGO)',
             
             tabPanel(
-                title = 'Linhagem (PANGO)',
+                title = 'Frequência de Linhagem (PANGO)',
                 icon = icon('fas fa-chart-bar'),
                 fluidRow(
                 
