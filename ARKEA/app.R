@@ -5,8 +5,6 @@
 ##%######################################################%##
 
 
-library(scales)
-library(formatR)
 library(leaflet)
 library(leaflet.extras)
 library(htmltools)
@@ -24,6 +22,7 @@ library(DT)
 library(ggdark)
 library(bslib)
 
+
 library(sparkline)
 library(kableExtra)
 library(formattable)
@@ -33,21 +32,30 @@ library(viridis)
 library(hrbrthemes)
 library(d3heatmap)
 library(RColorBrewer)
+library(janitor)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
 
 
 
-metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
+metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
+    filter(Region != "Alexandr Shevtsov et al")
 
 ## Selection of the Pongo lineage
 pongo <- (metadata) %>%
     filter(Country == "Brazil") %>% 
     select(`PANGO Lineage`) %>% 
     distinct(`PANGO Lineage`) %>% 
-    as.vector() %>% 
-    print()
+    as.vector() 
+
+## Selection countries
+list.countries <- metadata %>% 
+    select(Country) %>% 
+    distinct(Country) %>% 
+    as.vector()
+
+
 
 dataPong2 <- metadata %>% 
     filter(Country == "Brazil") %>% 
@@ -58,8 +66,18 @@ dataPong2 <- metadata %>%
     mutate(Estado = ifelse(Estado == "Amazonas BR", "Amazonas", Estado)) %>% 
     select(Estado, Linage, total) %>% 
     spread(Linage, total, fill = 0) %>% 
-    column_to_rownames(var = "Estado") %>% 
-    print()
+    column_to_rownames(var = "Estado")
+
+Sta.d <- metadata %>% 
+    clean_names() %>% 
+    filter(region != "Alexandr Shevtsov et al") %>% 
+    select(region, country, pango_lineage)
+
+
+### Format for sparkline and formattable
+unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
+customGreen0 <- "#CD2626"
+customGreen <- "#EE5C42"
 
 
 #   __________________ #< 206cc2ad885ede0b5041c3afdc0e1ac5 ># __________________
@@ -67,6 +85,7 @@ dataPong2 <- metadata %>%
 
 server <- function(input, output) {
     
+### Lineage distribution 
     dataPong <- reactive({
         metadata %>% 
             filter(Country == "Brazil", `PANGO Lineage` %in% c(input$pango), 
@@ -90,11 +109,12 @@ server <- function(input, output) {
                  subtitle = paste("ARKEA das Archaeas:", today()),
                  caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
             theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
-            
         
         ggplotly(plot, tooltip = "text")
         
     })
+    
+### Lineages by states of the federation
     
     output$plot2 <-  renderD3heatmap({
         
@@ -117,35 +137,47 @@ server <- function(input, output) {
        
     })
     
-    
-    
-    utput$Res3 <- renderUI({
-        
+### Descriptive statistics 
+
+    sta.data <- reactive({
         metadata %>% 
             clean_names() %>% 
-            filter(region != "Alexandr Shevtsov et al") %>% 
-            select(region, country, pango_lineage) %>% 
-            group_by(region, country) %>% 
+            filter(region == input$regiao) %>% 
+            select(country, pango_lineage) %>% 
+            group_by(country, .add = TRUE) %>% 
             count(pango_lineage) %>% 
-            ungroup() %>% 
-            group_nest(region, country) %>% 
+            select(country, n) %>% 
+            group_nest(country) %>% 
             mutate(
                 mean = map(data, ~round(mean(.x$n), digits = 2)),
                 sd = map(data, ~round(sd(.x$n), digits = 1)),
-                fig = map(data, ~spk_chr(.x$n, type = 'box', boxFillColor = '#FFF8DC', lineWidth = 1.5))) %>% 
-            unnest(c(data, mean, sd, fig)) %>% 
-            rename(Região = region, País = country, `Número total de seqüências` = n, 
-                   Média = mean, `Desvio padrão` = sd, `Distribuição dos dados` = fig, Linhagens = pango_lineage) %>% 
-            format_table(align = c('l', 'l', 'l', 'c', 'c', 'c', 'r')) %>% 
+                suma = map(data, ~round(sum(.x$n), digits = 1)),
+                fig = map(data, ~spk_chr(.x$n, type = 'bar', barColor = '#FFD700'))) %>% 
+            unnest(c(suma, mean, sd, fig)) %>%
+            distinct() %>% 
+            rename(País = country, `Número total de sequenciamentos` = suma, 
+                   Média = mean, `Desvio padrão` = sd, `Distribuição dos dados` = fig) %>%
+            select(-data) %>% 
+            select(País, `Número total de sequenciamentos`, Média, `Desvio padrão`, `Distribuição dos dados`) %>% 
+            arrange(desc(`Número total de sequenciamentos`))
+    })
+    
+    output$Res3 <- renderUI({
+        
+        res3 <- sta.data() %>% 
+            format_table(pretty_names = TRUE,
+                         align = c('l', 'l', 'c', 'c', 'c'), 
+                         list(`Número total de sequenciamentos` = color_bar("#FA614B66", fun = unit.scale),c("#66CDAA", "#458B74"),
+                              #`Média` = color_tile(customGreen, customGreen0),
+                              #`Desvio padrão` = color_tile(customGreen, customGreen0),
+                         p_digits = "scientific")) %>% 
             htmltools::HTML() %>%
             div() %>%
             spk_add_deps() %>%
             {column(width = 12, .)}
         
         res3
-        
     })
-    
     
     
     
@@ -208,9 +240,24 @@ sidebar <- dashboardSidebar(
             tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
                         manualmente ou selecionadas</br> diretamente na caixa de diálogo."), 
                    style = "color:#000080")
+            ),
+        
+        menuItem(
+            text = 'Estatística descritiva',
+            icon = icon('fas fa-chart-line'),
+            
+            selectInput(
+                inputId = 'regiao',
+                label = tags$h5(HTML('<strong>Região</strong>')),
+                choices = list('Asia', 'Europe', 'Oceania', 'South America', 'North America', 'Africa'),
+                multiple = FALSE,
+                selected = 'South America'
+                ),
+            tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#000080") 
             )
         )
     )
+    
 
 
 #   __________________ #< dfecf5d7f80c1a4e3e88607e968224af ># __________________
@@ -225,7 +272,7 @@ body <- dashboardBody(
     fluidPage(
         
         tabsetPanel(
-            selected = 'Linhagem (PANGO)',
+            selected = 'Estatística descritiva',
             
             tabPanel(
                 title = 'Linhagem (PANGO)',
@@ -267,9 +314,12 @@ body <- dashboardBody(
                 icon = icon('fas fa-chart-line'),
                 
                 box(
+                    title = "Tabela A: Estatísticas descritivas para o número de seqüências por país",
                     width = 12,
                     status = 'danger',
-                    solidHeader = FALSE
+                    solidHeader = FALSE,
+                    
+                    htmlOutput('Res3')
                     )
                 )
             )

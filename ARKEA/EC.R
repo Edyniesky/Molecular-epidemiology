@@ -85,7 +85,7 @@ library(geogrid)
 
 autor <- read_delim("nextstrain_ncov_global_authors.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
-metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
+metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
 
 entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
@@ -256,4 +256,66 @@ metadata %>%
   {column(width = 12, .)}
 
 res3
+
+
+
+
+t  <- metadata %>% 
+  clean_names() %>% 
+  filter(region == 'South America') %>% 
+  select(country, pango_lineage) %>% 
+  group_by(country) %>% 
+  count(pango_lineage) %>% 
+  select(country, n) %>% 
+  group_nest(country) %>% 
+  mutate(
+    mean = map(data, ~round(mean(.x$n), digits = 2)),
+    sd = map(data, ~round(sd(.x$n), digits = 1)),
+    suma = map(data, ~round(sum(.x$n), digits = 1)),
+    fig = map(data, ~spk_chr(.x$n, type = 'bar', boxFillColor = '#FFF8DC', lineWidth = 1.5))) %>% 
+  unnest(c(suma, mean, sd, fig)) %>%
+  distinct() %>% 
+  rename(País = country, `Número total de seqüências` = suma, 
+         Média = mean, `Desvio padrão` = sd, `Distribuição dos dados` = fig) %>%
+  select(-data) %>% 
+  print()
+
+
+formattable(t)
+
+
+
+format_table(t, align = c('l', 'l', 'l', 'c', 'c', 'c', 'r')) %>% 
+  htmltools::HTML() %>%
+  div() %>%
+  spk_add_deps()
+
+
+out = as.htmlwidget(formattable(t))
+out$dependencies = c(out$dependencies, htmlwidgets:::widget_dependencies("sparkline", "sparkline"))
+out
+
+
+metadata %>% 
+  clean_names() %>% 
+  print()
+library(GenomeGraphs)
+library(chromoMap)
+library(ggbio)
+
+library(epivizrData)
+
+p <- entropy %>% 
+  distinct(position, gene) %>% 
+  print()
+
+Ideogram(entropy$gene)
+
+
+
+entropy %>% 
+  ggplot(aes(x = position, y = entropy, color = gene, fill = gene)) +
+  geom_bar(stat = "identity",
+            position = "identity")
+
 
