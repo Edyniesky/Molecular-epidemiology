@@ -73,6 +73,37 @@ Sta.d <- metadata %>%
     filter(region != "Alexandr Shevtsov et al") %>% 
     select(region, country, pango_lineage)
 
+### Spatial data 
+cent <- read_delim("Export_Output.txt", ";", escape_double = FALSE, trim_ws = TRUE)
+
+
+gis.data <- metadata %>% 
+    filter(Country == "Brazil") %>% 
+    mutate(`Admin Division` = str_to_upper(`Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "AMAZONAS BR", "AMAZONAS", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+    clean_names() %>% 
+    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
+           originating_lab, author) %>% 
+    print()
+
+gis.data <- left_join(gis.data, cent, by = c("admin_division" = "NM_ESTADO"))
+
+gis.datai <- gis.data %>% 
+    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
+           originating_lab, author, x_cent, y_cent) %>% 
+    group_by(admin_division, x_cent, y_cent) %>% 
+    count(pango_lineage) %>% 
+    spread(pango_lineage, n, fill = 0) %>% 
+    print()
+
+
+
+
+
 
 ### Format for sparkline and formattable
 unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
@@ -130,11 +161,6 @@ server <- function(input, output) {
             cexCol = 0.75,
             digits = 20,
             theme = "dark")
-       
-       #if (input$grid) {
-        #   plot2i <- plot2i + d3heatmap(dataPong2, show_grid = TRUE)
-       #}
-       
     })
     
 ### Descriptive statistics 
@@ -167,7 +193,8 @@ server <- function(input, output) {
         res3 <- sta.data() %>% 
             format_table(pretty_names = TRUE,
                          align = c('l', 'l', 'c', 'c', 'c'), 
-                         list(`Número total de sequenciamentos` = color_bar("#FA614B66", fun = unit.scale),c("#66CDAA", "#458B74"),
+                         list(`Número total de sequenciamentos` = color_bar("#FA614B66", fun = unit.scale),
+                              c("#66CDAA", "#458B74"),
                               #`Média` = color_tile(customGreen, customGreen0),
                               #`Desvio padrão` = color_tile(customGreen, customGreen0),
                          p_digits = "scientific")) %>% 
@@ -179,7 +206,32 @@ server <- function(input, output) {
         res3
     })
     
-    
+### Spatial data 
+    output$map <- renderLeaflet({
+        
+        colors <- c("#7FFFD4", "#8A2BE2", "#1874CD", "#66CD00", "#EE2C2C", "#EEC900", "#FF6EB4", "#FF8247", "#00008B", "#8B3626")
+        
+        leaflet() %>% 
+            addTiles() %>% 
+            addMinicharts(gis.datai$x_cent, 
+                          gis.datai$y_cent, 
+                          type = "pie", 
+                          chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
+                                                    'P.1', 'P.2')],
+                          colorPalette = colors,
+                          opacity = 0.8,
+                          width = 45, 
+                          height = 45,
+                          legend = FALSE
+                          ) %>% 
+            addScaleBar(position = "bottomleft") %>% 
+            addEasyButton(easyButton(
+                icon = "fa-globe", title = "Aumentar ao nível 4",
+                onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+            addEasyButton(easyButton(
+                icon = "fa-crosshairs", title = "Localize-me",
+                onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
+        })
     
      }
 
@@ -195,7 +247,14 @@ header <- dashboardHeader(
         badgeText = "v0.0.1"
         ),
     
-    titleWidth = 360
+    titleWidth = 360,
+    
+    tags$li(a(href = 'http://ufape.edu.br/',
+              img(src = "C:/Users/edyfe/Documents/Trabajo en andamiento/GitHub/ARKEA/ARKEA/Captura de pantalla 2021-04-09 183520.png",
+                  title = "Instituição Executora",
+                  height = "30px"),
+              style = "padding-top:10px; padding-bottom:10px;"),
+            class = "dropdown")
 )
 
 
@@ -217,7 +276,7 @@ sidebar <- dashboardSidebar(
                 label = tags$h5(HTML('<strong>PANGO</strong>')),
                 choices = pongo$`PANGO Lineage`,
                 multiple = TRUE,
-                selected =  pongo$`PANGO Lineage` #c('P.2', 'B.1.1.28','B.1.1.33')
+                selected =  pongo$`PANGO Lineage`
                 ),
             
             tags$p(HTML("<br>Permite escolher uma ou mais linhagem"), style = "color:#000080"),
@@ -272,18 +331,20 @@ body <- dashboardBody(
     fluidPage(
         
         tabsetPanel(
-            selected = 'Estatística descritiva',
+            selected = 'Dados espaciais',
             
             tabPanel(
                 title = 'Linhagem (PANGO)',
                 icon = icon('fas fa-chart-bar'),
+                fluidRow(
+                
                 
                 box(
                     title = "Figura A: Frequência de Linhagem (PANGO) no Brasil",
                     status = 'danger',
                     #background = 'black',
                     solidHeader = FALSE,
-                    width = 6,
+                    width = 12,
                     height = 640,
                     
                     plotlyOutput(
@@ -298,7 +359,7 @@ body <- dashboardBody(
                     title = "Figura B: Número de linhagens (PANGO) por estados da Federação",
                     status = 'danger',
                     solidHeader = FALSE,
-                    width = 6,
+                    width = 12,
                     height = 640,
                     
                     d3heatmapOutput(
@@ -307,7 +368,7 @@ body <- dashboardBody(
                         height = "585px"
                         )
                     )
-                ),
+                )),
             
             tabPanel(
                 title = "Estatística descritiva",
@@ -321,10 +382,28 @@ body <- dashboardBody(
                     
                     htmlOutput('Res3')
                     )
+                ),
+             
+            tabPanel(
+                title = 'Dados espaciais',
+                icon = icon('globe'),
+                
+                fluidPage( 
+                
+                box(
+                    title = "Figura C: Distribuição espacial da linhagem Pongo pelos estados brasileiros",
+                    width = 12,
+                    status = 'danger',
+                    solidHeader = FALSE,
+                    
+                    leafletOutput('map', height = 800)
+                    
+                    )
                 )
             )
         )
     )
+)
 
 
 
