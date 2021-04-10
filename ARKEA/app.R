@@ -33,6 +33,7 @@ library(hrbrthemes)
 library(d3heatmap)
 library(RColorBrewer)
 library(janitor)
+library(leaflet.minicharts)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
@@ -219,18 +220,13 @@ server <- function(input, output) {
                           chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
                                                     'P.1', 'P.2')],
                           colorPalette = colors,
-                          opacity = 0.8,
+                          legendPosition = "topleft",
                           width = 45, 
-                          height = 45,
-                          legend = TRUE
-                          ) %>% 
-            addScaleBar(position = "bottomleft") %>% 
-            addEasyButton(easyButton(
-                icon = "fa-globe", title = "Aumentar ao nível 4",
-                onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
-            addEasyButton(easyButton(
-                icon = "fa-crosshairs", title = "Localize-me",
-                onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
+                          height = 45
+                          
+                          
+                          ) 
+            
         })
     
      }
