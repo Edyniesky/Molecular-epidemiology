@@ -30,7 +30,7 @@ library(formattable)
 library(ggstream)
 library(viridis)
 library(hrbrthemes)
-library(d3heatmap)
+library(iheatmapr)
 library(RColorBrewer)
 library(janitor)
 library(leaflet.minicharts)
@@ -42,6 +42,8 @@ library(leaflet.minicharts)
 
 metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
     filter(Region != "Alexandr Shevtsov et al")
+
+entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
 ## Selection of the Pongo lineage
 pongo <- (metadata) %>%
@@ -69,6 +71,9 @@ dataPong2 <- metadata %>%
     spread(Linage, total, fill = 0) %>% 
     column_to_rownames(var = "Estado")
 
+dataPong2i <- data.matrix(dataPong2, rownames.force = TRUE)
+
+
 Sta.d <- metadata %>% 
     clean_names() %>% 
     filter(region != "Alexandr Shevtsov et al") %>% 
@@ -88,8 +93,22 @@ gis.data <- metadata %>%
            `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
     clean_names() %>% 
     select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
+           originating_lab, author)
+
+table <- metadata %>% 
+    #filter(Country == "Brazil") %>% 
+    mutate(`Admin Division` = str_to_upper(`Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "AMAZONAS BR", "AMAZONAS", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+    clean_names() %>% 
+    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
            originating_lab, author) %>% 
-    print()
+    rename(Linhagem = strain, País = country, Estados = admin_division, Idade = age, Sexo = sex, `Linhagem (Pongo)` = pango_lineage,
+           Clade = clade, `laboratório de origem` = originating_lab, `Data de coleta` = collection_data, 
+           Autor = author)
 
 gis.data <- left_join(gis.data, cent, by = c("admin_division" = "NM_ESTADO"))
 
@@ -98,13 +117,7 @@ gis.datai <- gis.data %>%
            originating_lab, author, x_cent, y_cent) %>% 
     group_by(admin_division, x_cent, y_cent) %>% 
     count(pango_lineage) %>% 
-    spread(pango_lineage, n, fill = 0) %>% 
-    print()
-
-
-
-
-
+    spread(pango_lineage, n, fill = 0)
 
 ### Format for sparkline and formattable
 unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
@@ -148,20 +161,18 @@ server <- function(input, output) {
     
 ### Lineages by states of the federation
     
-    output$plot2 <-  renderD3heatmap({
+    output$plot2 <- renderIheatmap({
         
-       plot2i <- d3heatmap(
-            dataPong2,
-            colors = colorRampPalette(rev(brewer.pal(11, "PRGn")))(256),
-            revC = TRUE,
-            scale = 'none',
-            k_col = 4,
-            k_row = 4,
-            show_grid = FALSE,
-            #cexRow = 1,
-            cexCol = 0.75,
-            digits = 20,
-            theme = "dark")
+        plot2i <- main_heatmap(dataPong2i, name = "Número de linhagens") %>% 
+            add_col_clustering(k = 4, name = "Agrupamento<br>das colunas") %>%
+            add_row_clustering(k = 4, name = "Agrupamento<br>das linhas") %>%
+            add_col_labels() %>% 
+            add_row_labels() %>% 
+            add_col_summary(layout = list(zeroline = TRUE, title = "Média (Linhagem)", font = list(size = 1)), 
+                            colors  = "#104E8B") %>% 
+            #add_col_title("Measles Cases from 1930 to 2001", side = "top") %>% 
+            add_row_summary(groups = FALSE, title = "Média das linhas (Estados)",
+                            type = "bar", colors  = "#104E8B", layout = list(title = "Média<br>(Estados)",font = list(size = 8))) # 
     })
     
 ### Descriptive statistics 
@@ -207,6 +218,30 @@ server <- function(input, output) {
         res3
     })
     
+### entropy 
+### 
+    gen <- reactive({
+        entropy %>% 
+            filter(gene %in% c(input$gene))
+    })
+    
+    output$plot3i <-  renderPlotly({
+        
+        plot3 <- gen() %>% 
+            mutate(gene = factor(gene, levels = c('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 
+                                              'ORF7b', 'ORF8', 'ORF9b', 'N'), ordered = TRUE)) %>% 
+            ggplot(aes(x = gene, y = entropy, fill = gene)) +
+            geom_violin(width = 1.9, alpha = 0.7) +
+            geom_boxplot(width = 0.1, color = "grey", alpha = 0.1) +
+            scale_fill_manual(values = c("seagreen2", "goldenrod1", "firebrick1", "chartreuse4", "hotpink1", 
+                                         "dodgerblue", "olivedrab1", "cyan3", "coral", "lightpink2", "lightgoldenrod4", 
+                                         "maroon1")) +
+            theme_modern_rc(base_size = 12, axis_title_size = 14, ticks = TRUE) +
+            labs(x = "Gene", y = "Entropia", fill = "Gene")
+        
+        ggplotly(plot3)
+    
+    })
 ### Spatial data 
     output$map <- renderLeaflet({
         
@@ -217,17 +252,36 @@ server <- function(input, output) {
             addMinicharts(gis.datai$x_cent, 
                           gis.datai$y_cent, 
                           type = "pie", 
+                          opacity = 0.65,
                           chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
                                                     'P.1', 'P.2')],
                           colorPalette = colors,
                           legendPosition = "topleft",
                           width = 45, 
                           height = 45
-                          
-                          
                           ) 
-            
         })
+    
+    # Table  
+    output$tabela <- renderDataTable({
+        DT::datatable(
+            table,
+            style = 'bootstrap',
+            extensions = 'Buttons',
+            callback = JS('table.page("next").draw(false);'),
+            filter = 'top',
+            escape = TRUE,
+            options = list(
+                deferRender = TRUE,
+                pageLength = 25,
+                autoWidth = TRUE,
+                dom = 'Blfrtip', 
+                buttons = c('copy', 'csv', 'excel', 'pdf', 'print'),
+                lengthMenu = list(c(10 , 25, 50, -1), c(10, 25, 50, "All")))
+        )
+    })
+    
+    
     
      }
 
@@ -302,6 +356,20 @@ sidebar <- dashboardSidebar(
                 selected = 'South America'
                 ),
             tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#000080") 
+            ),
+        
+        menuItem(
+            text = 'Entropia',
+            icon = icon('fas fa-dna'),
+            
+            selectInput(
+                inputId = 'gene',
+                label = tags$h5(HTML('<strong>Genes</strong>')),
+                choices = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N'),
+                multiple = TRUE,
+                selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N')
+                ),
+            tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#000080")
             )
         )
     )
@@ -345,19 +413,21 @@ body <- dashboardBody(
                         )
                     ),
                 box(
-                    title = "Figura B: Número de linhagens (PANGO) por estados da Federação",
+                    title = "Figura B: Número de linhagens (PANGO) por Estados da Federação",
                     status = 'danger',
                     solidHeader = FALSE,
+                    #background = 'black',
                     width = 12,
                     height = 640,
                     
-                    d3heatmapOutput(
+                    iheatmaprOutput(
                         outputId = 'plot2', 
                         width = "100%", 
                         height = "585px"
                         )
                     )
-                )),
+                )
+                ),
             
             tabPanel(
                 title = "Estatística descritiva",
@@ -372,7 +442,31 @@ body <- dashboardBody(
                     htmlOutput('Res3')
                     )
                 ),
-             
+            tabPanel(
+                title = 'Entropia',
+                icon = icon('fas fa-dna'),
+                
+                fluidRow(
+                    
+                    box(
+                        title = "Figura A: Frequência de Linhagem (PANGO) no Brasil",
+                        status = 'danger',
+                        #background = 'black',
+                        solidHeader = FALSE,
+                        width = 12,
+                        height = 840,
+                        
+                        plotlyOutput(
+                            outputId = 'plot3i',
+                            width = "100%",
+                            height = "700px",
+                            inline = TRUE,
+                            reportTheme = TRUE
+                            )
+                        )
+                    )
+                ),
+            
             tabPanel(
                 title = 'Dados espaciais',
                 icon = icon('globe'),
@@ -380,7 +474,7 @@ body <- dashboardBody(
                 fluidPage( 
                 
                 box(
-                    title = "Figura C: Distribuição espacial da linhagem Pongo pelos estados brasileiros",
+                    title = "Tabela B: Metadados de sequenciamento de Covid-19 por país",
                     width = 12,
                     status = 'danger',
                     solidHeader = FALSE,
@@ -389,10 +483,30 @@ body <- dashboardBody(
                     
                     )
                 )
+            ),
+            
+            tabPanel(
+                title = 'Metadata',
+                icon = icon('fas fa-table'),
+                
+                fluidPage(
+                    box(
+                        title = "Figura C: Metadados de sequenciamento de Covid-19 por países",
+                        width = 12,
+                        status = 'danger',
+                        solidHeader = TRUE,
+                        
+                        dataTableOutput(
+                            outputId = 'tabela',
+                            width = "100%", 
+                            height = "auto")
+                        )
+                    )
+                )
             )
         )
     )
-)
+
 
 
 

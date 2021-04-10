@@ -222,6 +222,26 @@ d3heatmap(
 
 d3heatmap(t1)
 
+library(iheatmapr)
+
+t2 <- data.matrix(t1, rownames.force = TRUE)
+
+t2
+
+
+main_heatmap(t2, name = "Número de linhagens") %>% 
+  add_col_clustering(k = 4) %>%
+  add_row_clustering(k = 4) %>%
+  add_col_labels() %>% 
+  add_row_labels() %>% 
+  add_col_summary(layout = list(zeroline = FALSE, title = "Average")) %>% 
+  add_col_title("Measles Cases from 1930 to 2001", side = "top") %>% 
+  add_row_summary(groups = TRUE, 
+                  type = "bar",
+                  layout = list(title = "Average<br>per<br>year",
+                                font = list(size = 8)))
+
+
 
 
 
@@ -362,3 +382,61 @@ leaflet() %>%
                 width = 30,
                 opacity = 0.8
   )
+
+
+
+
+
+output$plot2 <-  renderD3heatmap({
+  
+  plot2i <- d3heatmap(
+    dataPong2,
+    colors = colorRampPalette(rev(brewer.pal(11, "PRGn")))(256),
+    revC = TRUE,
+    scale = 'none',
+    k_col = 4,
+    k_row = 4,
+    show_grid = FALSE,
+    cexRow = 1,
+    cexCol = 0.75,
+    digits = 20)
+  #theme = "dark")
+})
+
+
+d3heatmapOutput(
+  outputId = 'plot2', 
+  width = "100%", 
+  height = "585px"
+)
+
+
+
+gis.data <- metadata %>% 
+  mutate(`Admin Division` = str_to_upper(`Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "AMAZONAS BR", "AMAZONAS", `Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+  clean_names() %>% 
+  select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
+         originating_lab, author) %>% 
+  print()
+
+
+#"gene"     "position" "entropy" 
+#
+i <- entropy %>% 
+  mutate(gene = factor(gene, levels = c('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N'), 
+                       ordered = TRUE)) %>% 
+  ggplot(aes(x = gene, y = entropy, fill = gene)) +
+  geom_violin(width = 1.9, alpha = 0.7) +
+  geom_boxplot(width = 0.3, color = "grey", alpha = 0.1, outlier.size = 1.4, outlier.color = "#FFDAB9") +
+  scale_fill_manual(values = c("seagreen2", "goldenrod1", "firebrick1", "chartreuse4", "hotpink1", "dodgerblue", "olivedrab1", "cyan3", "coral", "lightpink2", "lightgoldenrod4", "maroon1")) +
+  theme_modern_rc(base_size = 12, axis_title_size = 14, ticks = TRUE) +
+  labs(x = "Gene", y = "Entropia", fill = "Gene")
+
+ggplotly(i)
+
+  
