@@ -155,7 +155,9 @@ server <- function(input, output) {
                  subtitle = paste("ARKEA das Archaeas:", today()),
                  caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
             #theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
-            theme_hc(base_size = 12)
+            theme_hc(base_size = 14) +
+            theme(axis.text = element_text(color = "dimgray", size = 14), axis.text.x = element_text(angle = 35, hjust = 1)) +
+            scale_x_date(date_labels = "%d %b %Y", date_breaks = "21 day")
         
         ggplotly(plot, tooltip = "text")
         
@@ -317,7 +319,24 @@ header <- dashboardHeader(
         badgeText = "v0.0.1"
         ),
     
-    titleWidth = 360
+    titleWidth = 360,
+    
+    tags$li(a(href = 'https://www.irrd.org/covid-19/',
+              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png",
+                  title = "Instituição Executora",
+                  height = "50px"),
+              style = "padding-top:10px; padding-bottom:10px;"),
+            class = "dropdown"),
+    
+    dropdownMenu(type = "messages", badgeStatus = "danger",
+                 messageItem(
+                     from = "Suporte",
+                     message = tags$p(HTML("<br>Bem-vindo ao aplicativo para a <br>exploração de dados de<br>
+                                           sequenciamento genético do Covid-19.</br>
+                                        ;-)")), # Para ver as instruções de uso, </br> clique aquí 
+                     icon = icon("life-ring"),
+                     time = now())
+    )
 )
 
 
@@ -380,7 +399,7 @@ sidebar <- dashboardSidebar(
         
         menuItem(
             text = 'Entropia',
-            icon = icon('fas fa-chart-pie'), #'fas fa-dna'
+            icon = icon('random'), #'fas fa-dna'
             
             selectInput(
                 inputId = 'gene',
@@ -408,7 +427,7 @@ body <- dashboardBody(
     fluidPage(
         
         tabsetPanel(
-            selected = 'Frequência de Linhagem (PANGO)',
+            selected = 'Informações',
             
             tabPanel(
                 title = 'Frequência de Linhagem (PANGO)',
@@ -464,12 +483,12 @@ body <- dashboardBody(
                 ),
             tabPanel(
                 title = 'Entropia',
-                icon = icon("fas fa-chart-pie"), #'fas fa-dna'
+                icon = icon("random"), #'fas fa-dna' fas fa-chart-pie
                 
                 fluidRow(
                     
                     box(
-                        title = "Figura C: Diversidad genética del Covid-19",
+                        title = "Figura C: Diversidad genética do Covid-19",
                         status = 'danger',
                         #background = 'black',
                         solidHeader = FALSE,
@@ -522,10 +541,32 @@ body <- dashboardBody(
                             height = "auto")
                         )
                     )
+                ),
+            tabPanel(
+                title = 'Informações',
+                icon = icon('fas fa-info-circle'),
+                
+                fluidPage(
+                    box(
+                        title = "Algumas informações úteis",
+                        width = 12,
+                        background = 'black',
+                        status = 'navy',
+                        solidHeader = TRUE,
+                        gradient = TRUE,
+                        
+                        tags$p(HTML("<p>O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
+                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patogénicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)<b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral.<p/>")),
+                        
+                        img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 300, width = 300),
+                        
+                        )
+                    )
                 )
             )
         )
     )
+    
 
 
 
