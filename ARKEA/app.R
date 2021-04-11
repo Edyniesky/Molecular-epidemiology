@@ -34,6 +34,7 @@ library(iheatmapr)
 library(RColorBrewer)
 library(janitor)
 library(leaflet.minicharts)
+library(ggthemes)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
