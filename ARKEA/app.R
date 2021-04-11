@@ -34,6 +34,7 @@ library(iheatmapr)
 library(RColorBrewer)
 library(janitor)
 library(leaflet.minicharts)
+library(ggthemes)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
@@ -379,7 +380,7 @@ sidebar <- dashboardSidebar(
         
         menuItem(
             text = 'Entropia',
-            icon = icon('fas fa-dna'),
+            icon = icon('fas fa-chart-pie'), #'fas fa-dna'
             
             selectInput(
                 inputId = 'gene',
@@ -463,7 +464,7 @@ body <- dashboardBody(
                 ),
             tabPanel(
                 title = 'Entropia',
-                icon = icon('fas fa-dna'),
+                icon = icon("fas fa-chart-pie"), #'fas fa-dna'
                 
                 fluidRow(
                     
