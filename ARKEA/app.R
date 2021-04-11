@@ -146,14 +146,15 @@ server <- function(input, output) {
         
         plot <- dataPong() %>% 
             ggplot(aes(x = data, y  = total, fill = Linage, text = Linage)) + 
-            geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "white", 
+            geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "black", 
                         alpha = 1, size = 0.1) +
             scale_fill_viridis(discrete = TRUE, option = "B") +
             scale_y_percent() +
             labs(x = "Data", y = "Frequência", fill = "Linhagem",
                  subtitle = paste("ARKEA das Archaeas:", today()),
                  caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
-            theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
+            #theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
+            theme_hc(base_size = 12)
         
         ggplotly(plot, tooltip = "text")
         
@@ -227,21 +228,21 @@ server <- function(input, output) {
     
     output$plot3i <-  renderPlotly({
         
-        plot3 <- gen() %>% 
-            mutate(gene = factor(gene, levels = c('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 
-                                              'ORF7b', 'ORF8', 'ORF9b', 'N'), ordered = TRUE)) %>% 
-            ggplot(aes(x = gene, y = entropy, fill = gene)) +
-            geom_violin(width = 1.9, alpha = 0.7) +
-            geom_boxplot(width = 0.1, color = "grey", alpha = 0.1) +
-            scale_fill_manual(values = c("seagreen2", "goldenrod1", "firebrick1", "chartreuse4", "hotpink1", 
-                                         "dodgerblue", "olivedrab1", "cyan3", "coral", "lightpink2", "lightgoldenrod4", 
-                                         "maroon1")) +
-            theme_modern_rc(base_size = 12, axis_title_size = 14, ticks = TRUE) +
-            labs(x = "Gene", y = "Entropia", fill = "Gene")
-        
-        ggplotly(plot3)
-    
+        plot3 <- gen() %>%
+            mutate(gene = factor(gene, levels = c('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 
+                                                  'ORF8', 'ORF9b', 'N'), ordered = TRUE)) %>% 
+            plot_ly(
+                x = ~gene,
+                y = ~entropy,
+                split = ~gene,
+                type = 'violin',
+                box = list(visible = TRUE),
+                meanline = list(visible = TRUE)) %>% 
+            layout(
+                xaxis = list(title = "Day"),
+                yaxis = list(title = "Entropia", zeroline = FALSE))
     })
+    
 ### Spatial data 
     output$map <- renderLeaflet({
         
@@ -256,10 +257,28 @@ server <- function(input, output) {
                           chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
                                                     'P.1', 'P.2')],
                           colorPalette = colors,
-                          legendPosition = "topleft",
+                          #legendPosition = "topleft",
                           width = 45, 
                           height = 45
-                          ) 
+                          ) %>% 
+            addMiniMap(tiles = providers$Esri.WorldStreetMap,
+                       toggleDisplay = TRUE,
+                       zoomLevelOffset = -8,
+                       zoomAnimation = TRUE) %>%
+            #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, style = list(color = "blue", weight = 1)) %>%
+            addMeasure(secondaryLengthUnit = 'kilometers',
+                       secondaryAreaUnit = 'sqmeters',
+                       localization = 'pt_BR') %>%
+            addScaleBar(position = "bottomleft") %>% 
+            addLayersControl(overlayGroups = c("Graticule"), # , "daylight"
+                             options = layersControlOptions(collapsed = TRUE)) %>% 
+            
+            addEasyButton(easyButton(
+                icon = "fa-globe", title = "Aumentar ao nível 4",
+                onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+            addEasyButton(easyButton(
+                icon = "fa-crosshairs", title = "Localize-me",
+                onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
         })
     
     # Table  
@@ -449,7 +468,7 @@ body <- dashboardBody(
                 fluidRow(
                     
                     box(
-                        title = "Figura A: Frequência de Linhagem (PANGO) no Brasil",
+                        title = "Figura C: Diversidad genética del Covid-19",
                         status = 'danger',
                         #background = 'black',
                         solidHeader = FALSE,

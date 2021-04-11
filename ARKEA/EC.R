@@ -439,4 +439,33 @@ i <- entropy %>%
 
 ggplotly(i)
 
+
+fig <- entropy %>%
+  mutate(gene = factor(gene, levels = c('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N'), 
+                       ordered = TRUE)) %>% 
+  plot_ly(
+    x = ~gene,
+    y = ~entropy,
+    split = ~gene,
+    type = 'violin',
+    box = list(
+      visible = T
+    ),
+    meanline = list(
+      visible = T
+    ), 
+    fig.layout.template = 'plotly_dark'
+  ) %>% 
+  layout(
+    xaxis = list(
+      title = "Day"
+    ),
+    yaxis = list(
+      title = "Entropia",
+      zeroline = F
+    )
+  )
   
+  
+  
+fig
