@@ -337,7 +337,7 @@ header <- dashboardHeader(
     titleWidth = 360,
     
     tags$li(a(href = 'https://www.irrd.org/covid-19/',
-              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png",
+              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png",
                   title = "Instituição Executora",
                   height = "50px"),
               style = "padding-top:10px; padding-bottom:10px;"),
@@ -585,8 +585,7 @@ body <- dashboardBody(
                                        dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral. Todas as análises foram realizadas utilizando o software livre <mark>R versão 4.0.5</mark> e as bibliotecas <mark>sahiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark> é possível usar a barra lateral que é exibida em três submenus que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.")),
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
-                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png" 
-                             width="600" height="450"></center>'), 
+                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png"                                width="500" height="350"></center>'), 
                         tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>. Para mais informações sobre o coronavírus, você pode acessar o link do Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD) <a href='https://www.irrd.org/'>link</a>."))
                         
                         )
