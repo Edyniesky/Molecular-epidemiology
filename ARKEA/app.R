@@ -336,10 +336,18 @@ header <- dashboardHeader(
     
     titleWidth = 360,
     
-    tags$li(a(href = 'https://www.irrd.org/covid-19/',
-              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png",
+    tags$li(a(href = 'https://www.irrd.org/',
+              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura4.png",
                   title = "Instituição Executora",
-                  height = "50px"),
+                  height = "55px"),
+              style = "padding-top:10px; padding-bottom:10px;"),
+            class = "dropdown"),
+    
+    
+    tags$li(a(href = 'https://www.irrd.org/covid-19/',
+              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png",
+                  title = "Instituição Executora",
+                  height = "55px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
     
