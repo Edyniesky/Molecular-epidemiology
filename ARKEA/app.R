@@ -42,10 +42,10 @@ library(shinyjs)
 
 
 
-metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
+metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
     filter(Region != "Alexandr Shevtsov et al")
 
-entropy <- read_delim("nextstrain_ncov_global_diversity (1).tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
 ## Selection of the Pongo lineage
 pongo <- (metadata) %>%
