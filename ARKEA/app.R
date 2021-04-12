@@ -35,6 +35,7 @@ library(RColorBrewer)
 library(janitor)
 library(leaflet.minicharts)
 library(ggthemes)
+library(shinyjs)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
@@ -130,6 +131,18 @@ customGreen <- "#EE5C42"
 #   Function                                                                ####
 
 server <- function(input, output) {
+    
+    observeEvent(input$showSidebar, {
+        shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
+    })
+    observeEvent(input$hideSidebar, {
+        shinyjs::addClass(selector = "body", class = "sidebar-collapse")
+    })
+    
+    observeEvent(input$refresh, {
+        js$refresh();
+    })
+    
     
 ### Lineage distribution 
     dataPong <- reactive({
@@ -249,7 +262,8 @@ server <- function(input, output) {
 ### Spatial data 
     output$map <- renderLeaflet({
         
-        colors <- c("#7FFFD4", "#8A2BE2", "#1874CD", "#66CD00", "#EE2C2C", "#EEC900", "#FF6EB4", "#FF8247", "#00008B", "#8B3626")
+        colors <- c("#7FFFD4", "#8A2BE2", "#1874CD", "#66CD00", "#EE2C2C", "#EEC900", "#FF6EB4", 
+                    "#FF8247", "#00008B", "#8B3626")
         
         leaflet() %>% 
             addTiles() %>% 
@@ -257,7 +271,8 @@ server <- function(input, output) {
                           gis.datai$y_cent, 
                           type = "pie", 
                           opacity = 0.65,
-                          chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
+                          chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 
+                                                    'B.1.1.378', 'B.1.195', 'B.40', 
                                                     'P.1', 'P.2')],
                           colorPalette = colors,
                           #legendPosition = "topleft",
@@ -328,6 +343,13 @@ header <- dashboardHeader(
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
     
+    tags$li(a(href = 'https://www.ufpe.br/lika',
+              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura3.png",
+                  title = "Instituição Executora",
+                  height = "50px"),
+              style = "padding-top:10px; padding-bottom:10px;"),
+            class = "dropdown"),
+    
     dropdownMenu(type = "messages", badgeStatus = "danger",
                  messageItem(
                      from = "Suporte",
@@ -336,8 +358,8 @@ header <- dashboardHeader(
                                         ;-)")), # Para ver as instruções de uso, </br> clique aquí 
                      icon = icon("life-ring"),
                      time = now())
+                 )
     )
-)
 
 
 #   __________________ #< 614893309be85aaf97989a89fbc667f9 ># __________________
@@ -352,6 +374,7 @@ sidebar <- dashboardSidebar(
         menuItem(
             text = 'Frequência de Linhagem (PANGO)',
             icon = icon('fas fa-chart-bar'),
+            startExpanded = FALSE,
             
             selectInput(
                 inputId = 'pango',
@@ -398,15 +421,17 @@ sidebar <- dashboardSidebar(
             ),
         
         menuItem(
-            text = 'Entropia',
+            text = 'Entropía',
             icon = icon('random'), #'fas fa-dna'
             
             selectInput(
                 inputId = 'gene',
                 label = tags$h5(HTML('<strong>Genes</strong>')),
-                choices = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N'),
+                choices = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 
+                               'ORF9b', 'N'),
                 multiple = TRUE,
-                selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 'ORF9b', 'N')
+                selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8',
+                                'ORF9b', 'N')
                 ),
             tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#000080")
             )
@@ -473,7 +498,7 @@ body <- dashboardBody(
                 icon = icon('fas fa-chart-line'),
                 
                 box(
-                    title = "Tabela A: Estatísticas descritivas para o número de seqüências por país",
+                    title = "Tabela A: Estatísticas descritivas para o número de sequenciamentos por país",
                     width = 12,
                     status = 'danger',
                     solidHeader = FALSE,
@@ -482,13 +507,13 @@ body <- dashboardBody(
                     )
                 ),
             tabPanel(
-                title = '3-Entropia',
+                title = '3-Entropía',
                 icon = icon("random"), #'fas fa-dna' fas fa-chart-pie
                 
                 fluidRow(
                     
                     box(
-                        title = "Figura C: Diversidad genética do Covid-19",
+                        title = "Figura C: Diversidad genética do Covid-19 por gene, de acordo com sua entropía",
                         status = 'danger',
                         #background = 'black',
                         solidHeader = FALSE,
@@ -513,7 +538,7 @@ body <- dashboardBody(
                 fluidPage( 
                 
                 box(
-                    title = "Tabela B: Metadados de sequenciamento de Covid-19 por país",
+                    title = "Mapa A: Distribuição de linhagens (Pongo) por Estados da Federação",
                     width = 12,
                     status = 'danger',
                     solidHeader = FALSE,
@@ -550,18 +575,19 @@ body <- dashboardBody(
                     box(
                         title = "ALGUMAS INFORMAÇÕES ÚTEIS",
                         width = 12,
-                        background = 'black',
+                        background = 'navy',
                         status = 'navy',
                         solidHeader = TRUE,
                         gradient = TRUE,
+                        headerBorder = TRUE,
                         
                         tags$p(HTML("O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
-                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patogénicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral.")),
+                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patogénicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral. Todas as análises foram realizadas utilizando o software livre <mark>R versão 4.0.5</mark> e as bibliotecas <mark>sahiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Lineage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark> é possível usar a barra lateral que é exibida em três submenus que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.")),
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
                         HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png" 
                              width="600" height="450"></center>'), 
-                        tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e  e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>"))
+                        tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>. Para mais informações sobre o coronavírus, você pode acessar o link do Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD) <a href='https://www.irrd.org/'>link</a>."))
                         
                         )
                     )
