@@ -19,23 +19,23 @@ library(tidyverse)
 library(lubridate)
 library(plotly)
 library(DT)
-library(ggdark)
-library(bslib)
+#library(ggdark)
+#library(bslib)
 
 
 library(sparkline)
 library(kableExtra)
-library(formattable)
+#library(formattable)
 
-library(ggstream)
-library(viridis)
-library(hrbrthemes)
+#library(ggstream)
+#library(viridis)
+#library(hrbrthemes)
 library(iheatmapr)
-library(RColorBrewer)
+#library(RColorBrewer)
 library(janitor)
 library(leaflet.minicharts)
-library(ggthemes)
-library(shinyjs)
+#library(ggthemes)
+#library(shinyjs)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
