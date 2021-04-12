@@ -123,9 +123,8 @@ gis.datai <- gis.data %>%
 
 ### Format for sparkline and formattable
 unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
-customGreen0 <- "#CD2626"
-customGreen <- "#EE5C42"
-
+customGreen0 <- "#87CEFF"
+customGreen <- "#BFEFFF"
 
 #   __________________ #< 206cc2ad885ede0b5041c3afdc0e1ac5 ># __________________
 #   Function                                                                ####
@@ -160,7 +159,7 @@ server <- function(input, output) {
         
         plot <- dataPong() %>% 
             ggplot(aes(x = data, y  = total, fill = Linage, text = Linage)) + 
-            geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "black", 
+            geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "white", 
                         alpha = 1, size = 0.1) +
             scale_fill_viridis(discrete = TRUE, option = "B") +
             scale_y_percent() +
@@ -207,7 +206,7 @@ server <- function(input, output) {
                 mean = map(data, ~round(mean(.x$n), digits = 2)),
                 sd = map(data, ~round(sd(.x$n), digits = 1)),
                 suma = map(data, ~round(sum(.x$n), digits = 1)),
-                fig = map(data, ~spk_chr(.x$n, type = 'bar', barColor = '#FFD700'))) %>% 
+                fig = map(data, ~spk_chr(.x$n, type = 'bar', barColor = '#104E8B'))) %>% 
             unnest(c(suma, mean, sd, fig)) %>%
             distinct() %>% 
             rename(País = country, `Número total de sequenciamentos` = suma, 
@@ -224,8 +223,8 @@ server <- function(input, output) {
                          align = c('l', 'l', 'c', 'c', 'c'), 
                          list(`Número total de sequenciamentos` = color_bar("#FA614B66", fun = unit.scale),
                               c("#66CDAA", "#458B74"),
-                              #`Média` = color_tile(customGreen, customGreen0),
-                              #`Desvio padrão` = color_tile(customGreen, customGreen0),
+                              `Média` = color_tile(customGreen, customGreen0),
+                              `Desvio padrão` = color_tile(customGreen, customGreen0),
                          p_digits = "scientific")) %>% 
             htmltools::HTML() %>%
             div() %>%
@@ -329,8 +328,8 @@ header <- dashboardHeader(
     
     title = shinyDashboardLogo(
         theme = "flat_red",
-        boldText = "Vigilância Molecular (ARKEA)",
-        mainText = "App",
+        boldText = "ARKEA DX Vigilância Molecular",
+        mainText = "",
         badgeText = "v0.0.1"
         ),
     
@@ -455,7 +454,7 @@ sidebar <- dashboardSidebar(
 body <- dashboardBody(
     
     shinyDashboardThemes(
-        theme = "purple_gradient"),
+        theme = "blue_gradient"),
     
     fluidPage(
         
@@ -566,7 +565,7 @@ body <- dashboardBody(
                         title = "Figura C: Metadados de sequenciamento de Covid-19 por países",
                         width = 12,
                         status = 'danger',
-                        solidHeader = TRUE,
+                        solidHeader = FALSE,
                         
                         dataTableOutput(
                             outputId = 'tabela',
@@ -583,17 +582,17 @@ body <- dashboardBody(
                     box(
                         title = "ALGUMAS INFORMAÇÕES ÚTEIS",
                         width = 12,
-                        background = 'navy',
+                        #background = 'navy',
                         status = 'navy',
-                        solidHeader = TRUE,
-                        gradient = TRUE,
+                        solidHeader = FALSE,
+                        gradient = FALSE,
                         headerBorder = TRUE,
                         
                         tags$p(HTML("O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
-                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral. Todas as análises foram realizadas utilizando o software livre <mark>R versão 4.0.5</mark> e as bibliotecas <mark>sahiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark> é possível usar a barra lateral que é exibida em três submenus que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.")),
+                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral. Todas as análises foram realizadas utilizando o software livre <mark>R versão 4.0.5</mark> e as bibliotecas <mark>sahiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo)</mark>, <mark>Estatística Descritiva</mark> e  <mark>Entropía</mark> é possível usar a barra lateral que é exibida em três submenus que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.")),
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
-                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png"                                width="500" height="350"></center>'), 
+                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png"                                width="400" height="250"></center>'), 
                         tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>. Para mais informações sobre o coronavírus, você pode acessar o link do Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD) <a href='https://www.irrd.org/'>link</a>."))
                         
                         )
