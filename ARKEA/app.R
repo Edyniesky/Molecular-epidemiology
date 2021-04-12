@@ -44,7 +44,7 @@ library(ggthemes)
 metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
     filter(Region != "Alexandr Shevtsov et al")
 
-entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
+entropy <- read_delim("nextstrain_ncov_global_diversity (1).tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
 ## Selection of the Pongo lineage
 pongo <- (metadata) %>%
@@ -430,7 +430,7 @@ body <- dashboardBody(
             selected = 'Informações',
             
             tabPanel(
-                title = 'Frequência de Linhagem (PANGO)',
+                title = '1-Frequência de Linhagem (PANGO)',
                 icon = icon('fas fa-chart-bar'),
                 fluidRow(
                 
@@ -469,7 +469,7 @@ body <- dashboardBody(
                 ),
             
             tabPanel(
-                title = "Estatística descritiva",
+                title = "2-Estatística descritiva",
                 icon = icon('fas fa-chart-line'),
                 
                 box(
@@ -482,7 +482,7 @@ body <- dashboardBody(
                     )
                 ),
             tabPanel(
-                title = 'Entropia',
+                title = '3-Entropia',
                 icon = icon("random"), #'fas fa-dna' fas fa-chart-pie
                 
                 fluidRow(
@@ -507,7 +507,7 @@ body <- dashboardBody(
                 ),
             
             tabPanel(
-                title = 'Dados espaciais',
+                title = '4-Dados espaciais',
                 icon = icon('globe'),
                 
                 fluidPage( 
@@ -525,7 +525,7 @@ body <- dashboardBody(
             ),
             
             tabPanel(
-                title = 'Metadata',
+                title = '5-Metadata',
                 icon = icon('fas fa-table'),
                 
                 fluidPage(
@@ -548,17 +548,20 @@ body <- dashboardBody(
                 
                 fluidPage(
                     box(
-                        title = "Algumas informações úteis",
+                        title = "ALGUMAS INFORMAÇÕES ÚTEIS",
                         width = 12,
                         background = 'black',
                         status = 'navy',
                         solidHeader = TRUE,
                         gradient = TRUE,
                         
-                        tags$p(HTML("<p>O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
-                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patogénicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)<b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral.<p/>")),
+                        tags$p(HTML("O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
+                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patogénicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral.")),
+                        #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
-                        img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 300, width = 300),
+                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png" 
+                             width="600" height="450"></center>'), 
+                        tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e  e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>"))
                         
                         )
                     )
