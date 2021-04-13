@@ -35,7 +35,7 @@ library(iheatmapr)
 library(janitor)
 library(leaflet.minicharts)
 library(ggthemes)
-#library(shinyjs)
+library(shinyjs)
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
@@ -131,16 +131,21 @@ customGreen <- "#BFEFFF"
 
 server <- function(input, output) {
     
-    observeEvent(input$showSidebar, {
-        shinyjs::removeClass(selector = "body", class = "sidebar-collapse")
-    })
-    observeEvent(input$hideSidebar, {
-        shinyjs::addClass(selector = "body", class = "sidebar-collapse")
-    })
+    runjs({'
+        var el2 = document.querySelector(".skin-blue");
+        el2.className = "skin-blue sidebar-mini";
+        var clicker = document.querySelector(".sidebar-toggle");
+        clicker.id = "switchState";
+    '})
     
-    observeEvent(input$refresh, {
-        js$refresh();
-    })
+    onclick('switchState', runjs({'
+        var title = document.querySelector(".logo")
+        if (title.style.visibility == "hidden") {
+          title.style.visibility = "visible";
+        } else {
+          title.style.visibility = "hidden";
+        }
+  '}))
     
     
 ### Lineage distribution 
@@ -168,7 +173,8 @@ server <- function(input, output) {
                  caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
             #theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
             theme_hc(base_size = 14) +
-            theme(axis.text = element_text(color = "dimgray", size = 14), axis.text.x = element_text(angle = 35, hjust = 1)) +
+            theme(axis.text = element_text(color = "dimgray", size = 14), axis.text.x = element_text(angle = 35, 
+                hjust = 1)) +
             scale_x_date(date_labels = "%d %b %Y", date_breaks = "21 day")
         
         ggplotly(plot, tooltip = "text")
@@ -282,7 +288,8 @@ server <- function(input, output) {
                        toggleDisplay = TRUE,
                        zoomLevelOffset = -8,
                        zoomAnimation = TRUE) %>%
-            #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, style = list(color = "blue", weight = 1)) %>%
+            #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, 
+            #style = list(color = "blue", weight = 1)) %>%
             addMeasure(secondaryLengthUnit = 'kilometers',
                        secondaryAreaUnit = 'sqmeters',
                        localization = 'pt_BR') %>%
@@ -334,25 +341,26 @@ header <- dashboardHeader(
         ),
     
     titleWidth = 360,
+    disable = FALSE,
     
     tags$li(a(href = 'https://www.irrd.org/',
-              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura4.png",
-                  title = "Instituição Executora",
-                  height = "55px"),
+              img(src = "https://www.irrd.tech/arkea/images/irrd_logo.png",#"https://github.com/Edyniesky/logos-/raw/gh-pages/Captura4.png",
+                  title = "IRRD - Instituto para Redução de Riscos e Desastres de Pernambuco ",
+                  height = "50px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
     
-    
-    tags$li(a(href = 'https://www.irrd.org/covid-19/',
-              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png",
-                  title = "Instituição Executora",
-                  height = "55px"),
-              style = "padding-top:10px; padding-bottom:10px;"),
-            class = "dropdown"),
     
     tags$li(a(href = 'https://www.ufpe.br/lika',
-              img(src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura3.png",
-                  title = "Instituição Executora",
+              img(src = "https://www.irrd.tech/arkea/images/lika_logo.png",
+                  title = "LIKA - Laboratório de Imunopatologia Keizo Asami - UFPE",
+                  height = "50px"),
+              style = "padding-top:10px; padding-bottom:10px;"),
+            class = "dropdown"),
+            
+     tags$li(a(href = 'https://www.irrd.org/covid-19/',
+              img(src = "https://www.irrd.tech/arkea/images/arkeadx_logo.png",
+                  title = "ARKEA DX",
                   height = "50px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
@@ -391,7 +399,7 @@ sidebar <- dashboardSidebar(
                 selected =  pongo$`PANGO Lineage`
                 ),
             
-            tags$p(HTML("<br>Permite escolher uma ou mais linhagem"), style = "color:#000080"),
+            tags$p(HTML("<br>Permite escolher uma ou mais linhagem"), style = "color:#FFFFFF"),
             
             dateRangeInput(
                 inputId = 'dateSelect',
@@ -410,7 +418,7 @@ sidebar <- dashboardSidebar(
                 ),
             tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
                         manualmente ou selecionadas</br> diretamente na caixa de diálogo."), 
-                   style = "color:#000080")
+                   style = "color:#FFFFFF")
             ),
         
         menuItem(
@@ -424,7 +432,7 @@ sidebar <- dashboardSidebar(
                 multiple = FALSE,
                 selected = 'South America'
                 ),
-            tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#000080") 
+            tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#FFFFFF") 
             ),
         
         menuItem(
@@ -440,7 +448,7 @@ sidebar <- dashboardSidebar(
                 selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8',
                                 'ORF9b', 'N')
                 ),
-            tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#000080")
+            tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#FFFFFF")
             )
         )
     )
@@ -453,13 +461,15 @@ sidebar <- dashboardSidebar(
 
 body <- dashboardBody(
     
+    useShinyjs(),
+    
     shinyDashboardThemes(
         theme = "blue_gradient"),
     
     fluidPage(
         
         tabsetPanel(
-            selected = 'Informações',
+            selected = 'Sobre',
             
             tabPanel(
                 title = '1-Frequência de Linhagem (PANGO)',
@@ -575,12 +585,12 @@ body <- dashboardBody(
                     )
                 ),
             tabPanel(
-                title = 'Informações',
+                title = 'Sobre',
                 icon = icon('fas fa-info-circle'),
                 
                 fluidPage(
                     box(
-                        title = "ALGUMAS INFORMAÇÕES ÚTEIS",
+                        title = "Sobre o APP Vigilância Molecular",
                         width = 12,
                         #background = 'navy',
                         status = 'navy',
@@ -588,12 +598,11 @@ body <- dashboardBody(
                         gradient = FALSE,
                         headerBorder = TRUE,
                         
-                        tags$p(HTML("O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de 
-                                       dados sobre <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, pode simplificar a exploração deste tipo de dados para a população em geral. Todas as análises foram realizadas utilizando o software livre <mark>R versão 4.0.5</mark> e as bibliotecas <mark>sahiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo)</mark>, <mark>Estatística Descritiva</mark> e  <mark>Entropía</mark> é possível usar a barra lateral que é exibida em três submenus que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.")),
+                        tags$p(HTML("<p align='justify'>O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de dados sobre  <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas.'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, esta ferramenta pode simplificar a exploração desses dados para a população em geral. Todas as análises foram realizadas utilizando o software livre R <mark>R versão 4.0.5</mark> e as bibliotecas <mark>shiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark>, é possível usar a barra lateral que é exibida em três submenus, que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.</p>")),
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
-                        HTML('<center><img src = "https://github.com/Edyniesky/logos-/raw/gh-pages/Captura1.png"                                width="400" height="250"></center>'), 
-                        tags$p(HTML("Os dados utilizados foram obtidos do site do Global Influenza Surveillance and Response System <b>(GISRS)</b> e podem ser acessados através do link a seguir <a href='https://www.gisaid.org/'>link</a>. Para mais informações sobre o coronavírus, você pode acessar o link do Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD) <a href='https://www.irrd.org/'>link</a>."))
+                        HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
+                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>."))
                         
                         )
                     )
