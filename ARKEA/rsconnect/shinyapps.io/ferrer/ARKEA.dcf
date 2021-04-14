@@ -1,0 +1,14 @@
+name: ARKEA
+title: ARKEA
+username:
+account: ferrer
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 3948995
+bundleId: 4461270
+url: https://ferrer.shinyapps.io/ARKEA/
+when: 1618237887.74973
+lastSyncTime: 1618237887.74973
+asMultiple: FALSE
+asStatic: FALSE
+ignoredFiles: Captura1.png|Captura2.png|Captura3.png|Centroides_Estados.sbn|Centroides_Estados.sbx|Centroides_Estados.shp|Centroides_Estados.shx|EC.R|README.md
