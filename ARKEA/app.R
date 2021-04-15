@@ -137,7 +137,7 @@ customGreen <- "#BFEFFF"
 #   Function                                                                ####
 
 server <- function(input, output) {
-    
+  
     runjs({'
         var el2 = document.querySelector(".skin-blue");
         el2.className = "skin-blue sidebar-mini";
@@ -389,7 +389,7 @@ header <- dashboardHeader(
 sidebar <- dashboardSidebar(
     width = "360px",
     collapsed = FALSE,
-    
+
     sidebarMenu(
         
         menuItem(
