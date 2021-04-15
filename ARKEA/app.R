@@ -92,7 +92,8 @@ gis.data <- metadata %>%
            `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
-           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "RONDONIA", "RONDÔNIA", `Admin Division`)) %>% 
     clean_names() %>% 
     select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
            originating_lab, author)
@@ -104,7 +105,8 @@ table <- metadata %>%
            `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
-           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+           `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`),
+           `Admin Division` = ifelse(`Admin Division` == "RONDONIA", "RONDÔNIA", `Admin Division`)) %>% 
     clean_names() %>% 
     select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
            originating_lab, author) %>% 
@@ -119,7 +121,12 @@ gis.datai <- gis.data %>%
            originating_lab, author, x_cent, y_cent) %>% 
     group_by(admin_division, x_cent, y_cent) %>% 
     count(pango_lineage) %>% 
-    spread(pango_lineage, n, fill = 0)
+    spread(pango_lineage, n, fill = 0) %>% 
+    ungroup() 
+
+col.name <- gis.datai %>% 
+  select(!c(admin_division, x_cent, y_cent)) 
+
 
 ### Format for sparkline and formattable
 unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
@@ -272,22 +279,21 @@ server <- function(input, output) {
         
         leaflet() %>% 
             addTiles() %>% 
-            addMinicharts(gis.datai$x_cent, 
-                          gis.datai$y_cent, 
-                          type = "pie", 
-                          opacity = 0.65,
-                          chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 
-                                                    'B.1.1.378', 'B.1.195', 'B.40', 
-                                                    'P.1', 'P.2')],
-                          colorPalette = colors,
-                          #legendPosition = "topleft",
-                          width = 45, 
-                          height = 45
-                          ) %>% 
             addMiniMap(tiles = providers$Esri.WorldStreetMap,
                        toggleDisplay = TRUE,
                        zoomLevelOffset = -8,
                        zoomAnimation = TRUE) %>%
+          addMinicharts(gis.datai$x_cent, 
+                        gis.datai$y_cent, 
+                        type = "pie", 
+                        opacity = 0.65,
+                        chartdata = col.name, #[,c('B.1', 'B.1.1.33', 'P.1', 'N.9', 'B.1.1', 'B.1.1.401', 'B.1.1.28','B.1.1.332', 'P.2')]
+                        colorPalette = colors,
+                        #legendPosition = "topleft",
+                        width = 45, 
+                        height = 45
+          ) %>% 
+          
             #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, 
             #style = list(color = "blue", weight = 1)) %>%
             addMeasure(secondaryLengthUnit = 'kilometers',
@@ -407,8 +413,8 @@ sidebar <- dashboardSidebar(
                 start = '2020-02-25',
                 end = '2020-12-01',
                 min = '2020-02-25',
-                max = '2021-04-08',
-                format = 'yyyy-mm-dd',
+                max = '',
+                format = 'dd-mm-yyyy',
                 startview = 'year',
                 weekstart = 1,
                 language = 'pt-BR',

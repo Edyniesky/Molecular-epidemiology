@@ -85,7 +85,7 @@ library(geogrid)
 
 autor <- read_delim("nextstrain_ncov_global_authors.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
-metadata <- read_delim("nextstrain_ncov_global_metadata1.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
+metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE)
 
 entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
@@ -345,6 +345,8 @@ entropy %>%
 cent <- read_delim("Export_Output.txt", ";", escape_double = FALSE, trim_ws = TRUE)
 
 
+
+
 gis.data <- metadata %>% 
   filter(Country == "Brazil") %>% 
   mutate(`Admin Division` = str_to_upper(`Admin Division`),
@@ -352,7 +354,8 @@ gis.data <- metadata %>%
          `Admin Division` = ifelse(`Admin Division` == "ESPIRITO SANTO", "ESPÍRITO SANTO", `Admin Division`),
          `Admin Division` = ifelse(`Admin Division` == "AMAPA", "AMAPÁ", `Admin Division`),
          `Admin Division` = ifelse(`Admin Division` == "PARAIBA", "PARAÍBA", `Admin Division`),
-         `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`)) %>% 
+         `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`),
+         `Admin Division` = ifelse(`Admin Division` == "RONDONIA", "RONDÔNIA", `Admin Division`)) %>% 
   clean_names() %>% 
   select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
          originating_lab, author) %>% 
@@ -366,8 +369,15 @@ gis.datai <- gis.data %>%
   group_by(admin_division, x_cent, y_cent) %>% 
   count(pango_lineage) %>% 
   spread(pango_lineage, n, fill = 0) %>% 
+  ungroup() %>% 
   print()
+
+
   
+col.name <- gis.datai %>% 
+  select(!c(admin_division, x_cent, y_cent)) %>% 
+  print()
+
 
 colors <- c("#7FFFD4", "#8A2BE2", "#1874CD", "#66CD00", "#EE2C2C", "#EEC900", "#FF6EB4", "#FF8247", "#00008B", "#8B3626")
 
@@ -376,15 +386,15 @@ leaflet() %>%
   addMinicharts(gis.datai$x_cent, 
                 gis.datai$y_cent, 
                 type = "pie", 
-                chartdata = gis.datai[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
-                                         'P.1', 'P.2')],
+                chartdata = col.name ,
                 colorPalette = colors,
                 width = 30,
                 opacity = 0.8
   )
 
 
-
+#[, c('B.1', 'B.1.1', 'B.1.1.28', 'B.1.1.33', 'B.1.1.378', 'B.1.195', 'B.40', 
+##·   'P.1', 'P.2')]
 
 
 output$plot2 <-  renderD3heatmap({
