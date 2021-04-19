@@ -274,8 +274,7 @@ server <- function(input, output) {
 ### Spatial data 
     output$map <- renderLeaflet({
         
-        colors <- c("#7FFFD4", "#8A2BE2", "#1874CD", "#66CD00", "#EE2C2C", "#EEC900", "#FF6EB4", 
-                    "#FF8247", "#00008B", "#8B3626")
+        colors <- c("#EE7942", "#7FFFD4", "#E0EEEE", "#838B8B", "#0000FF", "#8A2BE2", "#A52A2A", "#EE3B3B", "#8EE5EE", "#7FFF00", "#FF7F50", "#6495ED", "#FFB90F", "#556B2F", "#20B2AA", "#FFF68F", "#FF69B4", "#36648B", "#8B5A2B", "#551A8B")
         
         leaflet() %>% 
             addTiles() %>% 
@@ -286,7 +285,7 @@ server <- function(input, output) {
           addMinicharts(gis.datai$x_cent, 
                         gis.datai$y_cent, 
                         type = "pie", 
-                        opacity = 0.65,
+                        opacity = 0.85,
                         chartdata = col.name, #[,c('B.1', 'B.1.1.33', 'P.1', 'N.9', 'B.1.1', 'B.1.1.401', 'B.1.1.28','B.1.1.332', 'P.2')]
                         colorPalette = colors,
                         #legendPosition = "topleft",
