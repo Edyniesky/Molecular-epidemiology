@@ -133,6 +133,13 @@ unit.scale = function(x) (x - min(x)) / (max(x) - min(x))
 customGreen0 <- "#87CEFF"
 customGreen <- "#BFEFFF"
 
+data <- metadata %>% 
+  clean_names() %>% 
+  select(collection_data) %>% 
+  mutate(collection_data = last(collection_data)) %>% 
+  distinct() %>% 
+  mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
+
 #   __________________ #< 206cc2ad885ede0b5041c3afdc0e1ac5 ># __________________
 #   Function                                                                ####
 
@@ -153,6 +160,12 @@ server <- function(input, output) {
           title.style.visibility = "hidden";
         }
   '}))
+    
+    output$date <- renderUI({
+      paste("Última actualização", data$collection_data, sep = ": ")
+    })
+    
+    
     
     
 ### Lineage distribution 
@@ -607,7 +620,10 @@ body <- dashboardBody(
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
                         HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
-                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>."))
+                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")), 
+                        tags$p(h4(
+                          htmlOutput("date")
+                        ))
                         
                         )
                     )

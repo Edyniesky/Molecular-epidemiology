@@ -478,4 +478,14 @@ fig <- entropy %>%
   
   
   
-fig
+
+
+data <- metadata %>% 
+  clean_names() %>% 
+  select(collection_data) %>% 
+  mutate(collection_data = last(collection_data)) %>% 
+  distinct() %>% 
+  mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
+  
+paste("Última actualização", data$collection_data, sep = ": ")
+
