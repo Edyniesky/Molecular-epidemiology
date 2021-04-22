@@ -135,8 +135,11 @@ customGreen <- "#BFEFFF"
 
 data <- metadata %>% 
   clean_names() %>% 
+  #filter(country == "Brazil") %>% 
   select(collection_data) %>% 
-  mutate(collection_data = last(collection_data)) %>% 
+  mutate(collection_data = as_date(collection_data)) %>% 
+  arrange(desc(collection_data)) %>% 
+  mutate(collection_data = first(collection_data)) %>% 
   distinct() %>% 
   mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
 
@@ -181,13 +184,13 @@ server <- function(input, output) {
         })
     
     output$plot1 <-  renderPlotly({
-        
+      
         plot <- dataPong() %>% 
-            ggplot(aes(x = data, y  = total, fill = Linage, text = Linage)) + 
+            ggplot(aes(x = data, y  = total, fill = Linage)) + #text = total
             geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "white", 
                         alpha = 1, size = 0.1) +
             scale_fill_viridis(discrete = TRUE, option = "B") +
-            scale_y_percent() +
+            #scale_y_percent() +
             labs(x = "Data", y = "Frequência", fill = "Linhagem",
                  subtitle = paste("ARKEA das Archaeas:", today()),
                  caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
@@ -197,7 +200,7 @@ server <- function(input, output) {
                 hjust = 1)) +
             scale_x_date(date_labels = "%d %b %Y", date_breaks = "21 day")
         
-        ggplotly(plot, tooltip = "text")
+        ggplotly(plot) #tooltip = "text"
         
     })
     
@@ -287,7 +290,7 @@ server <- function(input, output) {
 ### Spatial data 
     output$map <- renderLeaflet({
         
-        colors <- c("#EE7942", "#7FFFD4", "#E0EEEE", "#838B8B", "#0000FF", "#8A2BE2", "#A52A2A", "#EE3B3B", "#8EE5EE", "#7FFF00", "#FF7F50", "#6495ED", "#FFB90F", "#556B2F", "#20B2AA", "#FFF68F", "#FF69B4", "#36648B", "#8B5A2B", "#551A8B")
+        colors <- c("#EE7942", "#7FFFD4", "#838B8B", "#0000FF", "#8A2BE2", "#A52A2A", "#EE3B3B", "#8EE5EE", "#7FFF00", "#FF7F50", "#6495ED", "#FFB90F", "#556B2F", "#20B2AA", "#FFF68F", "#FF69B4", "#36648B", "#8B5A2B", "#551A8B")
         
         leaflet() %>% 
             addTiles() %>% 
@@ -298,7 +301,7 @@ server <- function(input, output) {
           addMinicharts(gis.datai$x_cent, 
                         gis.datai$y_cent, 
                         type = "pie", 
-                        opacity = 0.85,
+                        opacity = .89,
                         chartdata = col.name, #[,c('B.1', 'B.1.1.33', 'P.1', 'N.9', 'B.1.1', 'B.1.1.401', 'B.1.1.28','B.1.1.332', 'P.2')]
                         colorPalette = colors,
                         #legendPosition = "topleft",
@@ -620,7 +623,7 @@ body <- dashboardBody(
                         #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
                         
                         HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
-                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")), 
+                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")),
                         tags$p(h4(
                           htmlOutput("date")
                         ))
