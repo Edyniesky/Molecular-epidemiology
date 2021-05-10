@@ -93,14 +93,18 @@ entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_doubl
 library(ggstream)
 library(streamgraph)
 
-t <- metadata %>% 
-  filter(Country == "Brazil") %>% 
+t <- metadata %>% filter(Country == "Brazil") %>% 
   group_by(`Collection Data`, `PANGO Lineage`) %>% # Admin Division
   count(`PANGO Lineage`) %>% 
-  ungroup() %>% 
   rename(data = `Collection Data`, total = n, Linage = `PANGO Lineage`) %>% 
+  ungroup() %>% 
+  group_by(data) %>% 
+  mutate(sum = sum(total), porc = total / sum *100) %>% 
+  #rename(data = `Collection Data`, total = n, Linage = `PANGO Lineage`) %>% 
   print()
   
+
+
 pongo <- (metadata) %>%
   filter(Country == "Brazil") %>% 
   select(`PANGO Lineage`) %>% 
@@ -110,23 +114,25 @@ pongo <- (metadata) %>%
 
 
 
-ti <- t  %>% 
-  ggplot(aes(x = data, y  = total, fill = Linage, text = Linage)) + 
-  geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "white", alpha = 0.9, size = 0.5) +
-  scale_fill_brewer(palette = "RdYlBu") + #"Spectral"
+t1 <- t  %>% 
+  ggplot(aes(x = data, y  = total, fill = Linage, text = porc)) + #text = total
+  geom_stream(type = "proportional", bw =  0.75, extra_span = 0.1, color = "white", 
+              alpha = 1, size = 0.1) +
   scale_fill_viridis(discrete = TRUE, option = "B") +
   scale_y_percent() +
   labs(x = "Data", y = "Frequência", fill = "Linhagem",
-       title = "Frequência de Linhagem (PANGO) no Brasil",
        subtitle = paste("ARKEA das Archaeas:", today()),
        caption = "https://nextstrain.org/ncov/global?c=location&lang=es") +
-  theme_modern_rc(base_size = 12, axis_title_size = 14, ticks = TRUE)
-  
+  #theme_modern_rc(base_size = 12, axis_title_size = 12, ticks = TRUE)
+  theme_hc(base_size = 14) +
+  theme(axis.text = element_text(color = "dimgray", size = 14), axis.text.x = element_text(angle = 360, 
+                                                                                           hjust = 1)) 
+  #scale_x_date(date_labels = "%d %b %Y", date_breaks = "21 day")
 
 
-ti
+t1
 
-ggplotly(ti, tooltip = "text")
+ggplotly(t1, tooltip = "all", originalData = TRUE) #tooltip = "text"
 
 
 t <- metadata %>% 
@@ -482,10 +488,14 @@ fig <- entropy %>%
 
 data <- metadata %>% 
   clean_names() %>% 
+  #filter(country == "Brazil") %>% 
   select(collection_data) %>% 
-  mutate(collection_data = last(collection_data)) %>% 
+  mutate(collection_data = as_date(collection_data)) %>% 
+  arrange(desc(collection_data)) %>% 
+  mutate(collection_data = first(collection_data)) %>% 
   distinct() %>% 
-  mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
+  mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y")) %>% 
+  print()
   
 paste("Última actualização", data$collection_data, sep = ": ")
 
