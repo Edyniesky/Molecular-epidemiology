@@ -19,6 +19,7 @@ library(tidyverse)
 library(lubridate)
 library(plotly)
 library(DT)
+library(shinythemes)
 #library(ggdark)
 #library(bslib)
 
@@ -358,7 +359,7 @@ header <- dashboardHeader(
         theme = "flat_red",
         boldText = "ARKEA DX Vigilância Molecular",
         mainText = "",
-        badgeText = "v0.0.1"
+        badgeText = "v0.0.2"
         ),
     
     titleWidth = 360,
@@ -367,7 +368,7 @@ header <- dashboardHeader(
     tags$li(a(href = 'https://www.irrd.org/',
               img(src = "https://www.irrd.tech/arkea/images/irrd_logo.png",#"https://github.com/Edyniesky/logos-/raw/gh-pages/Captura4.png",
                   title = "IRRD - Instituto para Redução de Riscos e Desastres de Pernambuco ",
-                  height = "50px"),
+                  height = "35px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
     
@@ -375,26 +376,28 @@ header <- dashboardHeader(
     tags$li(a(href = 'https://www.ufpe.br/lika',
               img(src = "https://www.irrd.tech/arkea/images/lika_logo.png",
                   title = "LIKA - Laboratório de Imunopatologia Keizo Asami - UFPE",
-                  height = "50px"),
+                  height = "35px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
-            
-     tags$li(a(href = 'https://www.irrd.org/covid-19/',
+    
+    tags$li(a(href = 'https://www.irrd.org/covid-19/',
               img(src = "https://www.irrd.tech/arkea/images/arkeadx_logo.png",
                   title = "ARKEA DX",
-                  height = "50px"),
+                  height = "35px"),
               style = "padding-top:10px; padding-bottom:10px;"),
             class = "dropdown"),
     
     dropdownMenu(type = "messages", badgeStatus = "danger",
                  messageItem(
-                     from = "Suporte",
-                     message = tags$p(HTML("<br>Bem-vindo ao aplicativo para a <br>exploração de dados de<br>
+                   from = "Suporte",
+                   message = tags$p(HTML("<br>Bem-vindo ao aplicativo para a <br>exploração de dados de<br>
                                            sequenciamento genético do Covid-19.</br>
                                         ;-)")), # Para ver as instruções de uso, </br> clique aquí 
-                     icon = icon("life-ring"),
-                     time = now())
-                 )
+                   icon = icon("life-ring"),
+                   time = now())
+    )
+    
+    
     )
 
 
@@ -402,77 +405,77 @@ header <- dashboardHeader(
 #   Sidebar                                                                 ####
 
 sidebar <- dashboardSidebar(
-    width = "360px",
-    collapsed = FALSE,
-
-    sidebarMenu(
-        
-        menuItem(
-            text = 'Frequência de Linhagem (PANGO)',
-            icon = icon('fas fa-chart-bar'),
-            startExpanded = FALSE,
-            
-            selectInput(
-                inputId = 'pango',
-                label = tags$h5(HTML('<strong>PANGO</strong>')),
-                choices = pongo$`PANGO Lineage`,
-                multiple = TRUE,
-                selected =  pongo$`PANGO Lineage`
-                ),
-            
-            tags$p(HTML("<br>Permite escolher uma ou mais linhagem"), style = "color:#FFFFFF"),
-            
-            dateRangeInput(
-                inputId = 'dateSelect',
-                label = tags$h5(HTML('<strong>PERIODO</strong>')),
-                start = '2020-02-25',
-                end = today(),
-                min = '2020-02-25',
-                max = today(),
-                format = 'dd-mm-yyyy',
-                startview = 'year',
-                weekstart = 1,
-                language = 'pt-BR',
-                separator = tags$strong('Até'),
-                width = '400px',
-                autoclose = TRUE
-                ),
-            tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
+  width = "360px",
+  collapsed = FALSE,
+  
+  sidebarMenu(
+    
+    menuItem(
+      text = 'Frequência de Linhagem (PANGO)',
+      icon = icon('fas fa-chart-bar'),
+      startExpanded = FALSE,
+      
+      selectInput(
+        inputId = 'pango',
+        label = tags$h5(HTML('<strong>PANGO</strong>')),
+        choices = pongo$`PANGO Lineage`,
+        multiple = TRUE,
+        selected =  pongo$`PANGO Lineage`
+      ),
+      
+      tags$p(HTML("<br>Permite escolher uma ou mais linhagem"), style = "color:#FFFFFF"),
+      
+      dateRangeInput(
+        inputId = 'dateSelect',
+        label = tags$h5(HTML('<strong>PERIODO</strong>')),
+        start = '2020-02-25',
+        end = today(),
+        min = '2020-02-25',
+        max = today(),
+        format = 'dd-mm-yyyy',
+        startview = 'year',
+        weekstart = 1,
+        language = 'pt-BR',
+        separator = tags$strong('Até'),
+        width = '400px',
+        autoclose = TRUE
+      ),
+      tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
                         manualmente ou selecionadas</br> diretamente na caixa de diálogo."), 
-                   style = "color:#FFFFFF")
-            ),
-        
-        menuItem(
-            text = 'Estatística descritiva',
-            icon = icon('fas fa-chart-line'),
-            
-            selectInput(
-                inputId = 'regiao',
-                label = tags$h5(HTML('<strong>Região</strong>')),
-                choices = list('Asia', 'Europe', 'Oceania', 'South America', 'North America', 'Africa'),
-                multiple = FALSE,
-                selected = 'South America'
-                ),
-            tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#FFFFFF") 
-            ),
-        
-        menuItem(
-            text = 'Entropía',
-            icon = icon('random'), #'fas fa-dna'
-            
-            selectInput(
-                inputId = 'gene',
-                label = tags$h5(HTML('<strong>Genes</strong>')),
-                choices = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 
-                               'ORF9b', 'N'),
-                multiple = TRUE,
-                selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8',
-                                'ORF9b', 'N')
-                ),
-            tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#FFFFFF")
-            )
-        )
+             style = "color:#FFFFFF")
+    ),
+    
+    menuItem(
+      text = 'Entropía',
+      icon = icon('random'), #'fas fa-dna'
+      
+      selectInput(
+        inputId = 'gene',
+        label = tags$h5(HTML('<strong>Genes</strong>')),
+        choices = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8', 
+                       'ORF9b', 'N'),
+        multiple = TRUE,
+        selected = list('ORF1a', 'ORF1b', 'S', 'ORF3a', 'E', 'M', 'ORF6', 'ORF7a', 'ORF7b', 'ORF8',
+                        'ORF9b', 'N')
+      ),
+      tags$p(HTML("<br>Permite escolher uma ou mais genes"), style = "color:#FFFFFF")
+    ),
+    
+    menuItem(
+      text = 'Estatística descritiva',
+      icon = icon('fas fa-chart-line'),
+      
+      selectInput(
+        inputId = 'regiao',
+        label = tags$h5(HTML('<strong>Região</strong>')),
+        choices = list('Asia', 'Europe', 'Oceania', 'South America', 'North America', 'Africa'),
+        multiple = FALSE,
+        selected = 'South America'
+      ),
+      tags$p(HTML("<br>Permite escolher uma Região"), style = "color:#FFFFFF") 
     )
+  )
+)
     
 
 
@@ -481,159 +484,188 @@ sidebar <- dashboardSidebar(
 
 
 body <- dashboardBody(
+  
+  useShinyjs(),
+  
+  shinyDashboardThemes(theme = "blue_gradient"),
+  
+  fluidPage(
     
-    useShinyjs(),
-    
-    shinyDashboardThemes(
-        theme = "blue_gradient"),
-    
-    fluidPage(
+    navbarPage(
+      title = "CONTEÚDO:", 
+      selected = "SOBRE",
+      collapsible = TRUE, 
+      inverse = TRUE, 
+      theme = shinytheme("readable"), 
+      fluid = TRUE,   #readable, lumen, yeti
+      
+      ### Pernambuco Data 
+      tabPanel("DADOS PERNAMBUCO"), 
+      
+      
+      ### Brasil Data 
+      tabPanel("DADOS BRASIL",
+               
+               fluidPage(
+                 tabsetPanel(
+                   
+                   tabPanel(
+                     title = '1-Frequência de Linhagem (PANGO)',
+                     icon = icon('fas fa-chart-bar'),
+                     fluidRow(
+                       
+                       box(
+                         title = "Figura A: Frequência de Linhagem (PANGO) no Brasil",
+                         status = 'danger',
+                         #background = 'black',
+                         solidHeader = FALSE,
+                         width = 12,
+                         height = 640,
+                         
+                         plotlyOutput(
+                           outputId = 'plot1',
+                           width = "100%",
+                           height = "585px",
+                           inline = TRUE,
+                           reportTheme = TRUE
+                           )
+                         ),
+                       
+                       box(
+                         title = "Figura B: Número de linhagens (PANGO) por Estados da Federação",
+                         status = 'danger',
+                         solidHeader = FALSE,
+                         #background = 'black',
+                         width = 12,
+                         height = 640,
+                         
+                         iheatmaprOutput(
+                           outputId = 'plot2', 
+                           width = "100%", 
+                           height = "585px"
+                           )
+                         )
+                       )
+                     ),
+                   
+                   tabPanel(
+                     title = '2-Dados espaciais',
+                     icon = icon('globe'),
+                     
+                     fluidPage(
+                       box(
+                         title = "Mapa A: Distribuição de linhagens (Pongo) por Estados da Federação",
+                         width = 12,
+                         status = 'danger',
+                         solidHeader = FALSE,
+                         
+                         leafletOutput('map', height = 800)
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+      
+      ### World data 
+      tabPanel("DADOS GLOBAIS",
+               
+               fluidPage(
+                 tabsetPanel(
+                   
+                   tabPanel(
+                     title = '1-Entropía',
+                     icon = icon("random"), #'fas fa-dna' fas fa-chart-pie
+                     
+                     fluidRow(
+                       
+                       box(
+                         title = "Figura C: Diversidade genética do Covid-19 por gene, de acordo com sua entropía",
+                         status = 'danger',
+                         #background = 'black',
+                         solidHeader = FALSE,
+                         width = 12,
+                         height = 840,
+                         
+                         plotlyOutput(
+                           outputId = 'plot3i',
+                           width = "100%",
+                           height = "700px",
+                           inline = TRUE,
+                           reportTheme = TRUE
+                         )
+                       )
+                     )
+                   ),
+                   
+                   tabPanel(
+                     title = "2-Estatística descritiva",
+                     icon = icon('fas fa-chart-line'),
+                     
+                     box(
+                       title = "Tabela A: Estatísticas descritivas para o número de sequenciamentos por país",
+                       width = 12,
+                       status = 'danger',
+                       solidHeader = FALSE,
+                       
+                       htmlOutput('Res3')
+                     )
+                   ),
+                   
+                   tabPanel(
+                     title = '3-Metadata',
+                     icon = icon('fas fa-table'),
+                     
+                     fluidPage(
+                       box(
+                         title = "Figura C: Metadados de sequenciamento de Covid-19 por países",
+                         width = 12,
+                         status = 'danger',
+                         solidHeader = FALSE,
+                         
+                         dataTableOutput(
+                           outputId = 'tabela',
+                           width = "100%", 
+                           height = "auto")
+                         )
+                       )
+                     )
+                   )
+                 )
+               ),
+      
+      ### about the Application 
+      tabPanel(
+        title = 'SOBRE',
+        icon = icon('fas fa-info-circle'),
         
-        tabsetPanel(
-            selected = 'Sobre',
+        fluidPage(
+          box(
+            title = "Sobre o APP Vigilância Molecular",
+            width = 12,
+            #background = 'navy',
+            status = 'navy',
+            solidHeader = FALSE,
+            gradient = FALSE,
+            headerBorder = TRUE,
             
-            tabPanel(
-                title = '1-Frequência de Linhagem (PANGO)',
-                icon = icon('fas fa-chart-bar'),
-                fluidRow(
-                
-                
-                box(
-                    title = "Figura A: Frequência de Linhagem (PANGO) no Brasil",
-                    status = 'danger',
-                    #background = 'black',
-                    solidHeader = FALSE,
-                    width = 12,
-                    height = 640,
-                    
-                    plotlyOutput(
-                        outputId = 'plot1',
-                        width = "100%",
-                        height = "585px",
-                        inline = TRUE,
-                        reportTheme = TRUE
-                        )
-                    ),
-                box(
-                    title = "Figura B: Número de linhagens (PANGO) por Estados da Federação",
-                    status = 'danger',
-                    solidHeader = FALSE,
-                    #background = 'black',
-                    width = 12,
-                    height = 640,
-                    
-                    iheatmaprOutput(
-                        outputId = 'plot2', 
-                        width = "100%", 
-                        height = "585px"
-                        )
-                    )
-                )
-                ),
+            tags$p(HTML("<p align='justify'>O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de dados sobre  <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas.'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, esta ferramenta pode simplificar a exploração desses dados para a população em geral. Todas as análises foram realizadas utilizando o software livre R <mark>R versão 4.1.0</mark> e as bibliotecas <mark>shiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark>, é possível usar a barra lateral que é exibida em três submenus, que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.</p>")),
+            #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
             
-            tabPanel(
-                title = "2-Estatística descritiva",
-                icon = icon('fas fa-chart-line'),
-                
-                box(
-                    title = "Tabela A: Estatísticas descritivas para o número de sequenciamentos por país",
-                    width = 12,
-                    status = 'danger',
-                    solidHeader = FALSE,
-                    
-                    htmlOutput('Res3')
-                    )
-                ),
-            tabPanel(
-                title = '3-Entropía',
-                icon = icon("random"), #'fas fa-dna' fas fa-chart-pie
-                
-                fluidRow(
-                    
-                    box(
-                        title = "Figura C: Diversidade genética do Covid-19 por gene, de acordo com sua entropía",
-                        status = 'danger',
-                        #background = 'black',
-                        solidHeader = FALSE,
-                        width = 12,
-                        height = 840,
-                        
-                        plotlyOutput(
-                            outputId = 'plot3i',
-                            width = "100%",
-                            height = "700px",
-                            inline = TRUE,
-                            reportTheme = TRUE
-                            )
-                        )
-                    )
-                ),
-            
-            tabPanel(
-                title = '4-Dados espaciais',
-                icon = icon('globe'),
-                
-                fluidPage( 
-                
-                box(
-                    title = "Mapa A: Distribuição de linhagens (Pongo) por Estados da Federação",
-                    width = 12,
-                    status = 'danger',
-                    solidHeader = FALSE,
-                    
-                    leafletOutput('map', height = 800)
-                    
-                    )
-                )
-            ),
-            
-            tabPanel(
-                title = '5-Metadata',
-                icon = icon('fas fa-table'),
-                
-                fluidPage(
-                    box(
-                        title = "Figura C: Metadados de sequenciamento de Covid-19 por países",
-                        width = 12,
-                        status = 'danger',
-                        solidHeader = FALSE,
-                        
-                        dataTableOutput(
-                            outputId = 'tabela',
-                            width = "100%", 
-                            height = "auto")
-                        )
-                    )
-                ),
-            tabPanel(
-                title = 'Sobre',
-                icon = icon('fas fa-info-circle'),
-                
-                fluidPage(
-                    box(
-                        title = "Sobre o APP Vigilância Molecular",
-                        width = 12,
-                        #background = 'navy',
-                        status = 'navy',
-                        solidHeader = FALSE,
-                        gradient = FALSE,
-                        headerBorder = TRUE,
-                        
-                        tags$p(HTML("<p align='justify'>O objetivo do aplicativo é auxiliar os gerentes e pesquisadores na exploração de dados sobre  <b><acronym title='Epidemiologia molecular é um ramo da ciência médica que se preocupa com a definição, identificação, e monitorização de espécies, subespécies e estirpes patog|ênicas relevantes por meio de tecnologia molecular e biologia evolutiva.Este ramo surgiu do uso de ferramentas criadas para o estudo da genética populacional em investigações epidemiológicas.'>epidemiologia molecular</acronym></b> do novo coronavírus <b>(Covid-19)</b> para a tomada de decisões. Além disso, esta ferramenta pode simplificar a exploração desses dados para a população em geral. Todas as análises foram realizadas utilizando o software livre R <mark>R versão 4.0.5</mark> e as bibliotecas <mark>shiny</mark> e <mark>shinydashboard</mark>. A aplicação é dividida em cinco janelas mais a janela de informaçães. Para a janela de  <mark>Frequência de Linhage (Pongo) </mark>,  <mark>Estatística Descritiva </mark> e  <mark>Entropía </mark>, é possível usar a barra lateral que é exibida em três submenus, que permitem filtrar os dados exibidos em cada uma das janelas mencionadas acima.</p>")),
-                        #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
-                        
-                        HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
-                        tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")),
-                        tags$p(h4(
-                          htmlOutput("date")
-                        ))
-                        
-                        )
-                    )
-                )
+            HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
+            tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")),
+            tags$p(h4(
+              htmlOutput("date")
+              )
+              )
             )
+          )
         )
+      
+      )
     )
+  )
+
     
 
 
