@@ -166,8 +166,7 @@ report1 <- report %>%
 report1i <- report1 %>% 
   select(Municipio, lineage, n) %>% 
   spread(lineage, n, fill = 0) %>% 
-  column_to_rownames(var = "Municipio") %>% 
-  print()
+  column_to_rownames(var = "Municipio") 
 
 report1i <- data.matrix(report1i, rownames.force = TRUE)
 
@@ -178,8 +177,7 @@ Cent <- read_excel("Cent.xls")
 Cent <- Cent %>% 
   filter(Sigla == "PE") %>% 
   select(Municipio,  Point_x, Point_y) %>% 
-  mutate(Municipio = stringr::str_to_upper(Municipio)) %>% 
-  print()
+  mutate(Municipio = stringr::str_to_upper(Municipio)) 
 
 
 report2 <- left_join(report1, Cent, by = "Municipio")
@@ -188,12 +186,10 @@ report2 <- left_join(report1, Cent, by = "Municipio")
 report2i <- report2 %>% 
   select(Point_x, Point_y, lineage, n) %>% 
   spread(lineage, n, fill = 0) %>% 
-  ungroup() %>% 
-  print()
+  ungroup() 
 
 col.name1 <- report2i %>% 
-  select(!( Municipio:Point_y)) %>% 
-  print()
+  select(!( Municipio:Point_y)) 
 
 
 estPE <- st_read("estadoPE.shp", quiet = TRUE) 
