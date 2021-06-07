@@ -459,7 +459,7 @@ server <- function(input, output) {
         addEasyButton(easyButton(
           icon = "fa-crosshairs", title = "Localize-me",
           onClick = JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
-        addMinicharts(report2i$Point_x, 
+        leaflet.minicharts::addMinicharts(report2i$Point_x, 
                       report2i$Point_y, 
                       type = "pie", 
                       chartdata = col.name1,
@@ -647,22 +647,22 @@ body <- dashboardBody(
                          )
                        )
                      )
-                   )#,
-                 #tabPanel(
-                   #title = '2-Dados espaciais PE',
-                   #icon = icon('globe'),
+                   ), # aquí
+                 tabPanel(
+                   title = '2-Dados espaciais PE',
+                   icon = icon('globe'),
                    
-                   #fluidPage(
-                    # box(
-                     #  title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
-                     #  width = 12,
-                      # status = 'danger',
-                   #    solidHeader = FALSE,
+                   fluidPage(
+                     box(
+                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
+                       width = 12,
+                       status = 'danger',
+                       solidHeader = FALSE,
                        
-                    #   leafletOutput('map2i', height = 700)
-                    # )
-                 #  )
-                # )
+                       leafletOutput('map2i', height = 700)
+                     )
+                   )
+                 ) ### aquí 
                  
                  
                  
