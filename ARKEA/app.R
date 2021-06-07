@@ -37,6 +37,9 @@ library(janitor)
 library(leaflet.minicharts)
 library(ggthemes)
 library(shinyjs)
+library(readxl)
+library(sf)
+
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
 
@@ -143,6 +146,63 @@ data <- metadata %>%
   mutate(collection_data = first(collection_data)) %>% 
   distinct() %>% 
   mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
+
+
+### Pernambuco data 
+
+report <- read_excel("report.xlsx") %>% 
+  clean_names()
+
+report1 <- report %>% 
+  select(data_extracao, localizacao, lineage) %>% 
+  mutate(across( where(is.character), ~replace_na(., "NÃO INFORMADO"))) %>% 
+  filter(lineage != "NA") %>% 
+  rename(Municipio = localizacao, data = data_extracao) %>% 
+  group_by(Municipio) %>% 
+  count(lineage) %>% 
+  print()
+
+
+report1i <- report1 %>% 
+  select(Municipio, lineage, n) %>% 
+  spread(lineage, n, fill = 0) %>% 
+  column_to_rownames(var = "Municipio") %>% 
+  print()
+
+report1i <- data.matrix(report1i, rownames.force = TRUE)
+
+
+# mapa PE 
+Cent <- read_excel("Cent.xls")
+
+Cent <- Cent %>% 
+  filter(Sigla == "PE") %>% 
+  select(Municipio,  Point_x, Point_y) %>% 
+  mutate(Municipio = stringr::str_to_upper(Municipio)) %>% 
+  print()
+
+
+report2 <- left_join(report1, Cent, by = "Municipio")
+
+
+report2i <- report2 %>% 
+  select(Point_x, Point_y, lineage, n) %>% 
+  spread(lineage, n, fill = 0) %>% 
+  ungroup() %>% 
+  print()
+
+col.name1 <- report2i %>% 
+  select(!( Municipio:Point_y)) %>% 
+  print()
+
+
+estPE <- st_read("estadoPE.shp", quiet = TRUE) 
+munPE <- st_read("municipioPE1.shp", quiet = TRUE)
+
+
+
+
+
 
 #   __________________ #< 206cc2ad885ede0b5041c3afdc0e1ac5 ># __________________
 #   Function                                                                ####
@@ -303,7 +363,7 @@ server <- function(input, output) {
                         gis.datai$y_cent, 
                         type = "pie", 
                         opacity = .89,
-                        chartdata = col.name, #[,c('B.1', 'B.1.1.33', 'P.1', 'N.9', 'B.1.1', 'B.1.1.401', 'B.1.1.28','B.1.1.332', 'P.2')]
+                        chartdata = col.name,
                         colorPalette = colors,
                         #legendPosition = "topleft",
                         width = 45, 
@@ -346,7 +406,76 @@ server <- function(input, output) {
         )
     })
     
+    ##### Pernambuco
     
+    output$plotPE <- renderIheatmap({
+      
+      plotPE1 <- main_heatmap(report1i, name = "Número de linhagens", colors = "Blues") %>% 
+        add_col_clustering(k = 4, name = "Agrupamento<br>das colunas") %>%
+        add_row_clustering(k = 4, name = "Agrupamento<br>das linhas") %>%
+        add_col_labels() %>% 
+        add_row_labels(font = list(size = 8)) %>% # size = 0.3,font = list(size = 6)
+        add_col_summary(layout = list(zeroline = TRUE, title = "Média (Linhagem)", font = list(size = 5)), 
+                        colors  = "#104E8B") %>% 
+        #add_col_title("Measles Cases from 1930 to 2001", side = "top") %>% 
+        add_row_summary(groups = FALSE, title = "Média das linhas (Município)",
+                        type = "bar", colors  = "#104E8B", layout = list(title = "Média<br>(Município)",font = list(size = 6))) # 
+    })
+    
+    
+    output$map2 <- renderLeaflet({
+      
+      colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
+      
+      leaflet() %>% 
+        addTiles() %>% 
+        addMiniMap(tiles = providers$Esri.WorldStreetMap,
+                   toggleDisplay = TRUE,
+                   zoomLevelOffset = -8,
+                   zoomAnimation = TRUE) %>%
+        addProviderTiles(providers$CartoDB.VoyagerNoLabels) %>%
+        leaflet::addPolygons(
+          data = estPE,
+          #color = "#E0EEEE",
+          weight = 3.5, 
+          opacity = .7,  
+          fillColor = "#E0EEEE",
+          label = ~NM_ESTADO) %>% 
+        addPolygons(
+          data = munPE,  
+          weight = 0.8, 
+          dashArray = 1,
+          color = "black",
+          opacity = 0.6,
+          fillOpacity = 0.2,
+          fillColor = "white",
+          highlightOptions = highlightOptions(color = "red", 
+                                              weight = 1.5,
+                                              bringToFront = FALSE),
+          label = ~NM_MUNICIP) %>% 
+        addMinicharts(report2i$Point_x, 
+                      report2i$Point_y, 
+                      type = "pie", 
+                      chartdata = col.name1,
+                      colorPalette = colors1, 
+                      opacity = 0.8,
+                      #legendPosition = "topleft",
+                      width = 45, 
+                      height = 30) %>% 
+        addMeasure(secondaryLengthUnit = 'kilometers',
+                   secondaryAreaUnit = 'sqmeters',
+                   localization = 'pt_BR') %>%
+        addScaleBar(position = "bottomleft") %>% 
+        addLayersControl(overlayGroups = c("Graticule"), # , "daylight"
+                         options = layersControlOptions(collapsed = TRUE)) %>% 
+        
+        addEasyButton(easyButton(
+          icon = "fa-globe", title = "Aumentar ao nível 4",
+          onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+        addEasyButton(easyButton(
+          icon = "fa-crosshairs", title = "Localize-me",
+          onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
+    })
     
      }
 
@@ -428,7 +557,7 @@ sidebar <- dashboardSidebar(
       dateRangeInput(
         inputId = 'dateSelect',
         label = tags$h5(HTML('<strong>PERIODO</strong>')),
-        start = '2020-02-25',
+        start = '2021-01-01',
         end = today(),
         min = '2020-02-25',
         max = today(),
@@ -500,9 +629,52 @@ body <- dashboardBody(
       fluid = TRUE,   #readable, lumen, yeti
       
       ### Pernambuco Data 
-      tabPanel("DADOS PERNAMBUCO"), 
+      tabPanel("DADOS PERNAMBUCO", 
+               fluidPage(
+               tabsetPanel(
       
-      
+                 tabPanel(
+                   title = '1-Frequência de Linhagem (PANGO)',
+                   icon = icon('fas fa-chart-bar'),
+                   fluidPage(
+                         
+                     box(
+                       title = "Figura A: Número de linhagens (PANGO) por Municípios",
+                       status = 'danger',
+                       solidHeader = FALSE,
+                       #background = 'black',
+                       width = 12,
+                       height = 840,
+                       
+                       iheatmaprOutput(
+                         outputId = 'plotPE', 
+                         width = "100%", 
+                         height = "700px"
+                         )
+                       )
+                     )
+                   ),
+                 tabPanel(
+                   title = '2-Dados espaciais PE',
+                   icon = icon('globe'),
+                   
+                   fluidPage(
+                     box(
+                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
+                       width = 12,
+                       status = 'danger',
+                       solidHeader = FALSE,
+                       
+                       leafletOutput('map2', height = 700)
+                     )
+                   )
+                 )
+                 
+                 )
+               )
+               ),
+               
+               
       ### Brasil Data 
       tabPanel("DADOS BRASIL",
                
@@ -549,7 +721,7 @@ body <- dashboardBody(
                      ),
                    
                    tabPanel(
-                     title = '2-Dados espaciais',
+                     title = '2-Dados espaciais BR',
                      icon = icon('globe'),
                      
                      fluidPage(
@@ -580,7 +752,7 @@ body <- dashboardBody(
                      fluidRow(
                        
                        box(
-                         title = "Figura C: Diversidade genética do Covid-19 por gene, de acordo com sua entropía",
+                         title = "Figura A: Diversidade genética do Covid-19 por gene, de acordo com sua entropía",
                          status = 'danger',
                          #background = 'black',
                          solidHeader = FALSE,
@@ -618,7 +790,7 @@ body <- dashboardBody(
                      
                      fluidPage(
                        box(
-                         title = "Figura C: Metadados de sequenciamento de Covid-19 por países",
+                         title = "Tabela B: Metadados de sequenciamento de Covid-19 por países",
                          width = 12,
                          status = 'danger',
                          solidHeader = FALSE,
