@@ -350,42 +350,42 @@ server <- function(input, output) {
     
 ### Spatial data 
     output$map <- renderLeaflet({
+      
+      colors <- c("#EE7942", "#7FFFD4", "#838B8B", "#0000FF", "#8A2BE2", "#A52A2A", "#EE3B3B", "#8EE5EE", "#7FFF00", "#FF7F50", "#6495ED", "#FFB90F", "#556B2F", "#20B2AA", "#FFF68F", "#FF69B4", "#36648B", "#8B5A2B", "#551A8B")
+      
+      leaflet() %>% 
+        addTiles() %>% 
+        addMiniMap(tiles = providers$Esri.WorldStreetMap,
+                   toggleDisplay = TRUE,
+                   zoomLevelOffset = -8,
+                   zoomAnimation = TRUE) %>%
+        addMinicharts(gis.datai$x_cent, 
+                      gis.datai$y_cent, 
+                      type = "pie", 
+                      opacity = .89,
+                      chartdata = col.name,
+                      colorPalette = colors,
+                      #legendPosition = "topleft",
+                      width = 45, 
+                      height = 45
+        ) %>% 
         
-        colors <- c("#EE7942", "#7FFFD4", "#838B8B", "#0000FF", "#8A2BE2", "#A52A2A", "#EE3B3B", "#8EE5EE", "#7FFF00", "#FF7F50", "#6495ED", "#FFB90F", "#556B2F", "#20B2AA", "#FFF68F", "#FF69B4", "#36648B", "#8B5A2B", "#551A8B")
+        #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, 
+        #style = list(color = "blue", weight = 1)) %>%
+        addMeasure(secondaryLengthUnit = 'kilometers',
+                   secondaryAreaUnit = 'sqmeters',
+                   localization = 'pt_BR') %>%
+        addScaleBar(position = "bottomleft") %>% 
+        addLayersControl(overlayGroups = c("Graticule"), # , "daylight"
+                         options = layersControlOptions(collapsed = TRUE)) %>% 
         
-        leaflet() %>% 
-            addTiles() %>% 
-            addMiniMap(tiles = providers$Esri.WorldStreetMap,
-                       toggleDisplay = TRUE,
-                       zoomLevelOffset = -8,
-                       zoomAnimation = TRUE) %>%
-          addMinicharts(gis.datai$x_cent, 
-                        gis.datai$y_cent, 
-                        type = "pie", 
-                        opacity = .89,
-                        chartdata = col.name,
-                        colorPalette = colors,
-                        #legendPosition = "topleft",
-                        width = 45, 
-                        height = 45
-          ) %>% 
-          
-            #addGraticule(group = "Graticule", interval = 5, sphere = FALSE, 
-            #style = list(color = "blue", weight = 1)) %>%
-            addMeasure(secondaryLengthUnit = 'kilometers',
-                       secondaryAreaUnit = 'sqmeters',
-                       localization = 'pt_BR') %>%
-            addScaleBar(position = "bottomleft") %>% 
-            addLayersControl(overlayGroups = c("Graticule"), # , "daylight"
-                             options = layersControlOptions(collapsed = TRUE)) %>% 
-            
-            addEasyButton(easyButton(
-                icon = "fa-globe", title = "Aumentar ao nível 4",
-                onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
-            addEasyButton(easyButton(
-                icon = "fa-crosshairs", title = "Localize-me",
-                onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
-        })
+        addEasyButton(easyButton(
+          icon = "fa-globe", title = "Aumentar ao nível 4",
+          onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+        addEasyButton(easyButton(
+          icon = "fa-crosshairs", title = "Localize-me",
+          onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
+    })
     
     # Table  
     output$tabela <- renderDataTable({
@@ -423,11 +423,11 @@ server <- function(input, output) {
     })
     
     
-    output$map2 <- renderLeaflet({
+    output$map2i <- renderLeaflet({
       
       colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
       
-      leaflet() %>% 
+      map2 <- leaflet() %>% 
         addTiles() %>% 
         addMiniMap(tiles = providers$Esri.WorldStreetMap,
                    toggleDisplay = TRUE,
@@ -441,7 +441,7 @@ server <- function(input, output) {
           opacity = .7,  
           fillColor = "#E0EEEE",
           label = ~NM_ESTADO) %>% 
-        addPolygons(
+        leaflet::addPolygons(
           data = munPE,  
           weight = 0.8, 
           dashArray = 1,
@@ -453,28 +453,26 @@ server <- function(input, output) {
                                               weight = 1.5,
                                               bringToFront = FALSE),
           label = ~NM_MUNICIP) %>% 
+        addMeasure(secondaryLengthUnit = 'kilometers',
+                   secondaryAreaUnit = 'sqmeters',
+                   localization = 'pt_BR') %>%
+        addScaleBar(position = "bottomleft") %>% 
+        addEasyButton(easyButton(
+          icon = "fa-globe", title = "Aumentar ao nível 4",
+          onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+        addEasyButton(easyButton(
+          icon = "fa-crosshairs", title = "Localize-me",
+          onClick = JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
         addMinicharts(report2i$Point_x, 
                       report2i$Point_y, 
                       type = "pie", 
                       chartdata = col.name1,
                       colorPalette = colors1, 
                       opacity = 0.8,
-                      #legendPosition = "topleft",
                       width = 45, 
-                      height = 30) %>% 
-        addMeasure(secondaryLengthUnit = 'kilometers',
-                   secondaryAreaUnit = 'sqmeters',
-                   localization = 'pt_BR') %>%
-        addScaleBar(position = "bottomleft") %>% 
-        addLayersControl(overlayGroups = c("Graticule"), # , "daylight"
-                         options = layersControlOptions(collapsed = TRUE)) %>% 
+                      height = 30,
+                      legend = TRUE)  
         
-        addEasyButton(easyButton(
-          icon = "fa-globe", title = "Aumentar ao nível 4",
-          onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
-        addEasyButton(easyButton(
-          icon = "fa-crosshairs", title = "Localize-me",
-          onClick = JS("function(btn, map){ map.locate({setView: true}); }")))
     })
     
      }
@@ -653,25 +651,27 @@ body <- dashboardBody(
                          )
                        )
                      )
-                   ),
-                 tabPanel(
-                   title = '2-Dados espaciais PE',
-                   icon = icon('globe'),
+                   )#,
+                 #tabPanel(
+                   #title = '2-Dados espaciais PE',
+                   #icon = icon('globe'),
                    
-                   fluidPage(
-                     box(
-                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
-                       width = 12,
-                       status = 'danger',
-                       solidHeader = FALSE,
+                   #fluidPage(
+                    # box(
+                     #  title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
+                     #  width = 12,
+                      # status = 'danger',
+                   #    solidHeader = FALSE,
                        
-                       leafletOutput('map2', height = 700)
-                     )
-                   )
-                 )
+                    #   leafletOutput('map2i', height = 700)
+                    # )
+                 #  )
+                # )
+                 
+                 
                  
                  )
-               )
+              )
                ),
                
                
