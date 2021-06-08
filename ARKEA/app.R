@@ -197,6 +197,11 @@ estPE <- st_read("estadoPE.shp", quiet = TRUE)
 munPE <- st_read("municipioPE1.shp", quiet = TRUE)
 
 
+joliepalette <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", 
+                  "#006400")[1:nlevels(report2i$lineage)]
+getColor <- function(report2i) {joliepalette[report2i$lineage]}
+
+
 icons <- awesomeIcons(
   icon = 'ios-close',
   iconColor = 'black',
@@ -205,6 +210,10 @@ icons <- awesomeIcons(
 )
 
 #Generate the javascript
+
+joliepalette <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", 
+                  "#006400")[1:nlevels(report2i$lineage)]
+getColor <- function(report2i) {joliepalette[report2i$lineage]}
 
 jsscript3 <-
   paste0(
@@ -473,13 +482,6 @@ server <- function(input, output) {
     
     output$map2i <- renderLeaflet({
       
-      
-      
-      joliepalette <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", 
-                      "#006400")[1:nlevels(report2i$lineage)]
-      
-      getColor <- function(report2i) {joliepalette[report2i$lineage]}
-
       #colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
       
       map2 <- leaflet(width = "100%", height = "700px")  %>% 
