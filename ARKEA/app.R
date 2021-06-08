@@ -185,8 +185,8 @@ report2 <- left_join(report1, Cent, by = "Municipio")
 
 report2i <- report2 %>% 
   select(Point_x, Point_y, lineage, n) %>% 
-  #spread(lineage, n, fill = 0) %>% 
-  mutate(lineage = factor(lineage)) %>% 
+  spread(lineage, n, fill = 0) %>% 
+  #mutate(lineage = factor(lineage)) %>% 
   ungroup() 
 
 col.name1 <- report2i %>% 
@@ -283,7 +283,7 @@ server <- function(input, output) {
   '}))
     
     output$date <- renderUI({
-      paste("Última actualização", data$collection_data, sep = ": ")
+      paste("Última atualização", data$collection_data, sep = ": ")
     })
     
     
@@ -482,7 +482,7 @@ server <- function(input, output) {
     
     output$map2i <- renderLeaflet({
       
-      #colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
+      colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
       
       map2 <- leaflet(width = "100%", height = "700px")  %>% 
         addTiles() %>% 
@@ -520,28 +520,28 @@ server <- function(input, output) {
         addEasyButton(easyButton(
           icon = "fa-crosshairs", title = "Localize-me",
           onClick = JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
-        #leaflet.minicharts::addMinicharts(report2i$Point_x, 
-                      #report2i$Point_y, 
-                     # type = "pie", 
-                      #chartdata = col.name1,
-                     # colorPalette = colors1, 
-                     # opacity = 0.8,
-                    #  width = 45, 
-                    #  height = 30,
-                  #    legend = TRUE)
-        addAwesomeMarkers(data = report2i,
-                          lng = report2i$Point_x,
-                          lat = report2i$Point_y,
-                          group = ~lineage,
-                          icon = icons,
+        leaflet.minicharts::addMinicharts(report2i$Point_x, 
+                      report2i$Point_y, 
+                      type = "pie", 
+                      chartdata = col.name1,
+                      colorPalette = colors1, 
+                      opacity = 0.8,
+                      width = 45, 
+                      height = 30,
+                      legend = TRUE)
+        #addAwesomeMarkers(data = report2i,
+         #                 lng = report2i$Point_x,
+          #                lat = report2i$Point_y,
+           #               group = ~lineage,
+            #              icon = icons,
                           #label = ~lineage,
-                          clusterOptions = markerClusterOptions(
-                            iconCreateFunction =
-                              JS(jsscript3)),
-                          popup = paste0(
-                            "<strong>Município: </strong>", report2i$Municipio, "<br>",
-                            "<strong>Linhagens Pongo: </strong>", report2i$lineage,"<br>",
-                            "<strong>Número de sequências: </strong>",report2i$n, "<br>"))
+              #            clusterOptions = markerClusterOptions(
+              #              iconCreateFunction =
+               #               JS(jsscript3)),
+               #           popup = paste0(
+                #            "<strong>Município: </strong>", report2i$Municipio, "<br>",
+                 #           "<strong>Linhagens Pongo: </strong>", report2i$lineage,"<br>",
+                   #         "<strong>Número de sequências: </strong>",report2i$n, "<br>"))
       })
     
      }
