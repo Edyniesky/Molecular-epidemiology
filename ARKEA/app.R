@@ -201,7 +201,7 @@ icons <- awesomeIcons(
   icon = 'ios-close',
   iconColor = 'black',
   library = 'ion',
-  markerColor = getColor(breweries91)
+  markerColor = getColor(report2i)
 )
 
 #Generate the javascript
