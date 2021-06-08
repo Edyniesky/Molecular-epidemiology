@@ -236,7 +236,7 @@ const paths= proportions.map((prop, i) => {
 if (prop === 0) return '';
 else if (prop === 1) return `<circle cx='0' cy='0' r='${radius}' fill='none' stroke='${colors.groups[i]}' stroke-width='${width}' stroke-alignment='center' stroke-linecap='butt' />`;
 else return `<path d='M ${arcs[i].x} ${arcs[i].y} A ${radius} ${radius} 0 ${arcs[i+1].long} 1 ${arcs[i+1].x} ${arcs[i+1].y}' fill='none' stroke='${colors.groups[i]}' stroke-width='${width}' stroke-alignment='center' stroke-linecap='butt' />`
-});
+}); 
 
 return new L.DivIcon({
 html: `
@@ -539,11 +539,8 @@ server <- function(input, output) {
                           popup = paste0(
                             "<strong>Município: </strong>", report2i$Municipio, "<br>",
                             "<strong>Linhagens Pongo: </strong>", report2i$lineage,"<br>",
-                            "<strong>Número de sequências: </strong>",report2i$n, "<br>"
-                            
-                          ))
-        
-    })
+                            "<strong>Número de sequências: </strong>",report2i$n, "<br>"))
+      })
     
      }
 
