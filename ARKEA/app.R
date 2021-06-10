@@ -39,6 +39,9 @@ library(ggthemes)
 library(shinyjs)
 library(readxl)
 library(sf)
+library(markdown)
+library(zoo)
+#library(cowplot)
 
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
@@ -149,6 +152,34 @@ data <- metadata %>%
 
 
 ### Pernambuco data 
+### 
+WHO <- function(x){
+  if (x == "B.1.1.7") {
+    rep("Alpha", length(x));
+  }else if (x == "B.1.351") {
+    rep("Beta", length(x));
+  } else if (x == "P.1") {
+    rep("Gamma", length(x)); 
+  }else if (x == "B.1.617.2") {
+    rep("Delta", length(x));
+  }else if (x == "B.1.427") {
+    rep("Epsilon", length(x));
+  } else if (x == "B.1.429") {
+    rep("Epsilon", length(x)); 
+  }else if (x == "P.2") {
+    rep("Zeta", length(x));
+  }else if (x == "B.1.525") {
+    rep("Eta", length(x));
+  } else if (x == "P.3") {
+    rep("Theta", length(x)); 
+  }else if (x == "B.1.526") {
+    rep("Iota", length(x));
+  }else if (x == "B.1.617.1") {
+    rep("Kappa", length(x));
+  }else{
+    rep("Pouco interesse para saúde", length(x)) 
+  }
+}
 
 report <- read_excel("report.xlsx") %>% 
   clean_names()
@@ -158,21 +189,36 @@ report1 <- report %>%
   mutate(across( where(is.character), ~replace_na(., "NÃO INFORMADO"))) %>% 
   filter(lineage != "NA") %>% 
   rename(Municipio = localizacao, data = data_extracao) %>% 
+  mutate(Municipio = stringr::str_replace_all(Municipio, c(
+    "SOLIDAO" = "SOLIDÃO",
+    "VERTENTE DO LERIO" = "VERTENTE DO LÉRIO",
+    "CALCADO" = "CALÇADO"))) %>% 
   group_by(Municipio) %>% 
   count(lineage) %>% 
-  print()
+  ungroup()
 
 
 report1i <- report1 %>% 
   select(Municipio, lineage, n) %>% 
   spread(lineage, n, fill = 0) %>% 
-  column_to_rownames(var = "Municipio") 
+  column_to_rownames(var = "Municipio") %>% 
+  print()
 
 report1i <- data.matrix(report1i, rownames.force = TRUE)
 
 
-# mapa PE 
+# map PErnambuco 
+
+geres <- read_excel("municipios_geres.xlsx")
 Cent <- read_excel("Cent.xls")
+
+geres <- geres %>%
+  mutate(Municipio = stringr::str_to_upper(Municipio),
+         Municipio = stringr::str_replace_all(Municipio, c(
+           "FREI MIGUELINO" = "FREI MIGUELINHO", 
+           "SÃO CAETANO" = "SÃO CAITANO", 
+           "ITAMARACÁ" = "ILHA DE ITAMARACÁ",
+           "IGUARACI" = "IGUARACY"))) 
 
 Cent <- Cent %>% 
   filter(Sigla == "PE") %>% 
@@ -182,15 +228,35 @@ Cent <- Cent %>%
 
 report2 <- left_join(report1, Cent, by = "Municipio")
 
-
 report2i <- report2 %>% 
-  select(Point_x, Point_y, lineage, n) %>% 
-  spread(lineage, n, fill = 0) %>% 
-  #mutate(lineage = factor(lineage)) %>% 
-  ungroup() 
+  select(Municipio, Point_x, Point_y, lineage, n) %>% 
+  #spread(lineage, n, fill = 0) %>% 
+  mutate(lineage = factor(lineage)) %>% 
+  mutate(OMS = map(lineage, WHO)) %>% 
+  unnest(OMS) %>% 
+  print()
 
-col.name1 <- report2i %>% 
-  select(!( Municipio:Point_y)) 
+report2i <- left_join(report2i, geres)
+
+report2ii <- report2i %>% 
+  group_by(Point_x, Point_y ,geres, lineage, OMS) %>% 
+  summarise(Total = sum(n)) %>% 
+  print()
+
+#table PE
+report2ii <- report2i %>% 
+  ungroup() %>% 
+  select(geres, lineage, OMS, n) %>% 
+  group_by(geres, lineage, OMS) %>% 
+  summarise(Total = sum(n)) %>% 
+  ungroup() %>%
+  mutate(Porcentagem = round(Total / sum(Total) * 100, digits = 2)) %>% 
+  rename(Geres = geres, `Pongo lineage` = lineage) %>% 
+  arrange(desc(Porcentagem))
+
+
+#col.name1 <- report2i %>% 
+ # select(!( Municipio:Point_y)) 
 
 
 estPE <- st_read("estadoPE.shp", quiet = TRUE) 
@@ -259,6 +325,12 @@ className: 'marker-cluster'
 });
 }")
 
+#fileData <- reactiveFileReader(1000, NULL, 'https://data.brasil.io/dataset/covid19/caso_full.csv.gz', read_csv)
+#fileData <- read_csv('https://data.brasil.io/dataset/covid19/caso_full.csv.gz')
+#fileData <- left_join(fileData, geres, by = c("city" = "Municipio"))
+
+fileData <- read_delim("caso_full.csv", ";", escape_double = FALSE, col_types = cols(X1 = col_skip()), 
+                        trim_ws = TRUE)
 
 
 #   __________________ #< 206cc2ad885ede0b5041c3afdc0e1ac5 ># __________________
@@ -332,10 +404,11 @@ server <- function(input, output) {
             add_col_labels() %>% 
             add_row_labels() %>% 
             add_col_summary(layout = list(zeroline = TRUE, title = "Média (Linhagem)", font = list(size = 1)), 
-                            colors  = "#104E8B") %>% 
+                            colors  = "#104E8B", summary_function = "median") %>% 
             #add_col_title("Measles Cases from 1930 to 2001", side = "top") %>% 
             add_row_summary(groups = FALSE, title = "Média das linhas (Estados)",
-                            type = "bar", colors  = "#104E8B", layout = list(title = "Média<br>(Estados)",font = list(size = 8))) # 
+                            type = "bar", colors  = "#104E8B", layout = list(title = "Média<br>(Estados)",font = list(size = 8)),
+                            summary_function = "median") # 
     })
     
 ### Descriptive statistics 
@@ -473,23 +546,27 @@ server <- function(input, output) {
         add_col_labels() %>% 
         add_row_labels(font = list(size = 8)) %>% # size = 0.3,font = list(size = 6)
         add_col_summary(layout = list(zeroline = TRUE, title = "Média (Linhagem)", font = list(size = 5)), 
-                        colors  = "#104E8B") %>% 
+                        colors  = "#104E8B", summary_function = "median") %>% 
         #add_col_title("Measles Cases from 1930 to 2001", side = "top") %>% 
-        add_row_summary(groups = FALSE, title = "Média das linhas (Município)",
-                        type = "bar", colors  = "#104E8B", layout = list(title = "Média<br>(Município)",font = list(size = 6))) # 
+        add_row_summary(groups = FALSE, title = "Média das linhas (Município)", type = "bar",
+                        colors  = "#104E8B", layout = list(title = "Média<br>(Município)",font = list(size = 6)),
+                        summary_function = "median") # 
+    })
+    
+    
+    
+    mapPE <- reactive({
+      report2i %>% 
+        filter(geres %in% c(input$gere))
     })
     
     
     output$map2i <- renderLeaflet({
       
-      colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
+      #colors1 <- c("#ADFF2F", "#8B8B83", "#FFA500", "#1E90FF", "#FFD700", "#EE2C2C", "#8470FF", "#006400")
       
       map2 <- leaflet(width = "100%", height = "700px")  %>% 
         addTiles() %>% 
-        addMiniMap(tiles = providers$Esri.WorldStreetMap,
-                   toggleDisplay = TRUE,
-                   zoomLevelOffset = -8,
-                   zoomAnimation = TRUE) %>%
         addProviderTiles(providers$CartoDB.VoyagerNoLabels) %>%
         leaflet::addPolygons(
           data = estPE,
@@ -510,39 +587,100 @@ server <- function(input, output) {
                                               weight = 1.5,
                                               bringToFront = FALSE),
           label = ~NM_MUNICIP) %>% 
-        addMeasure(secondaryLengthUnit = 'kilometers',
-                   secondaryAreaUnit = 'sqmeters',
-                   localization = 'pt_BR') %>%
+        #addMiniMap(tiles = providers$Esri.WorldStreetMap,
+         #          toggleDisplay = TRUE,
+          #         zoomLevelOffset = -8,
+           #        zoomAnimation = TRUE) %>%
+        #addMeasure(secondaryLengthUnit = 'kilometers',
+         #          secondaryAreaUnit = 'sqmeters',
+          #         localization = 'pt_BR') %>%
         addScaleBar(position = "bottomleft") %>% 
         addEasyButton(easyButton(
-          icon = "fa-globe", title = "Aumentar ao nível 4",
-          onClick = JS("function(btn, map){ map.setZoom(4); }"))) %>%
+          icon = "fa-globe", title = "Aumentar ao nível 8",
+          onClick = JS("function(btn, map){ map.setZoom(8); }"))) %>%
         addEasyButton(easyButton(
           icon = "fa-crosshairs", title = "Localize-me",
           onClick = JS("function(btn, map){ map.locate({setView: true}); }"))) %>% 
-        leaflet.minicharts::addMinicharts(report2i$Point_x, 
-                      report2i$Point_y, 
-                      type = "pie", 
-                      chartdata = col.name1,
-                      colorPalette = colors1, 
-                      opacity = 0.8,
-                      width = 45, 
-                      height = 30,
-                      legend = TRUE)
-        #addAwesomeMarkers(data = report2i,
-         #                 lng = report2i$Point_x,
-          #                lat = report2i$Point_y,
-           #               group = ~lineage,
-            #              icon = icons,
+        #leaflet.minicharts::addMinicharts(report2i$Point_x, 
+         #             report2i$Point_y, 
+          #            type = "pie", 
+           #           chartdata = col.name1,
+            #          colorPalette = colors1, 
+             #         opacity = 0.8,
+              #        width = 45, 
+               #       height = 30,
+                #      legend = TRUE)
+        addAwesomeMarkers(data = mapPE(),
+                          lng = mapPE()$Point_x,
+                          lat = mapPE()$Point_y,
+                          group = ~lineage,
+                          icon = icons,
                           #label = ~lineage,
-              #            clusterOptions = markerClusterOptions(
-              #              iconCreateFunction =
-               #               JS(jsscript3)),
-               #           popup = paste0(
-                #            "<strong>Município: </strong>", report2i$Municipio, "<br>",
-                 #           "<strong>Linhagens Pongo: </strong>", report2i$lineage,"<br>",
-                   #         "<strong>Número de sequências: </strong>",report2i$n, "<br>"))
+                          clusterOptions = markerClusterOptions(
+                            iconCreateFunction =
+                              JS(jsscript3)),
+                          popup = paste0(
+                            "<strong>Município: </strong>", mapPE()$Municipio, "<br>",
+                            "<strong>GERES: </strong>", mapPE()$geres, "<br>",
+                            "<strong>Linhagens Pongo: </strong>", mapPE()$lineage,"<br>",
+                            "<strong>Classificação da OMS: </strong>", mapPE()$OMS, "<br>",
+                            "<strong>Número de sequências: </strong>", mapPE()$n, "<br>"))
       })
+    
+  #  table PE
+    output$tablePE <- renderUI({
+      
+      tabPE <- report2ii %>% 
+        format_table(pretty_names = TRUE,
+                     align = c('l', 'l', 'l', 'c', 'r'), 
+                     list(`Porcentagem` = color_bar("#FF8C69", fun = unit.scale),
+                          p_digits = "scientific")) %>% 
+        htmltools::HTML() %>%
+        div() %>%
+        spk_add_deps() %>%
+        {column(width = 12, .)}
+      
+      tabPE
+    })
+    
+    #fileData <- reactiveFileReader(1000, NULL, 'https://data.brasil.io/dataset/covid19/caso_full.csv.gz', read_csv)
+    
+    covid <- reactive({
+      fileData1 <- fileData %>% 
+        select(date, state, city, geres, new_confirmed, new_deaths) %>% 
+        #filter(state == "PE", city != "Importados/Indefinidos") %>% 
+        mutate(city = stringr::str_to_upper(city), new_confirmed = abs(new_confirmed), new_deaths = abs(new_deaths)) %>% 
+        filter(geres %in% c(input$gere)) %>% 
+        group_by(date) %>% 
+        summarise(new_confirmed = sum(new_confirmed), new_deaths = sum(new_deaths)) %>% 
+        mutate(rollmeanC = round(rollmean(new_confirmed, k = 7, fill = NA, align = "right"), digits = 2),
+               rollmeanD = round(rollmean(new_deaths, k = 7, fill = NA, align = "right"), digits = 2)) %>% 
+        ungroup()
+    })
+    
+    output$cases <- renderPlot({
+      covid() %>% 
+        ggplot(aes(x = date, y = new_confirmed)) + 
+        geom_bar(position = "stack", stat = 'identity', fill = '#C1CDCD', alpha = 0.7 ) +
+        geom_line(aes(y = rollmeanC), color = 'dodgerblue4', size = 1.2) +
+        #theme_half_open(font_size = 14) +
+        theme_clean() +
+        scale_x_date(date_labels = "%b , %y", date_breaks = "60 day") +
+        theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
+        labs(x = 'Data', y = 'Número de novos casos')
+    })
+    
+    output$deaths <- renderPlot({
+      covid() %>%
+      ggplot(aes(x = date, y = new_deaths)) + 
+      geom_bar(position = "stack", stat = 'identity', fill = '#C1CDCD', alpha = 0.7 ) +
+      geom_line(aes(y = rollmeanD), color = 'firebrick3', size = 1.2) +
+      theme_clean() +
+      scale_x_date(date_labels = "%b , %y", date_breaks = "60 day") +
+      theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
+        labs(x = 'Data', 
+             y = 'Número de novos óbitos')
+    })
     
      }
 
@@ -720,27 +858,64 @@ body <- dashboardBody(
                          )
                        )
                      )
-                   ), # aquí
+                   ), 
+                 
                  tabPanel(
-                   title = '2-Dados espaciais PE',
+                   title = '2-Distribuição de linhagens',
                    icon = icon('globe'),
                    
-                   fluidPage(
-                     box(
-                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
-                       width = 12,
-                       status = 'danger',
-                       solidHeader = FALSE,
-                       
-                       leafletOutput('map2i', height = 700)
-                     )
+                   leafletOutput('map2i', height = 800),
+                 
+                   absolutePanel(
+                     #fixed = TRUE,
+                     draggable = TRUE, top = 300, left = "auto", right = 45, bottom = "auto",
+                     width = 380, height = "auto",
+                     
+                     #wellPanel(
+                       HTML(markdownToHTML(fragment.only = TRUE, text = c(
+                         "RESUMEN DE DATOS `COVID-19` PERNAMBUCO"))), #)
+                     
+                     #sliderInput("n", "", min = 3, max = 20, value = 5),
+                     selectInput(
+                       inputId = 'gere',
+                       label = tags$h5(HTML('<strong>GERES</strong>')),
+                       choices = list("I", "II", 'III', "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII"),
+                       multiple = TRUE,
+                       selected = list("I", "II", 'III', "IV", "V", "VI", "VII", "VIII", "IX", "X", "XI", "XII")
+                     ),
+                     HTML(markdownToHTML(fragment.only = TRUE, text = c(
+                       "`Peremite escolher uma ou mais GERES`"))),
+                     
+                     style = "opacity: 0.7",
+                     HTML(markdownToHTML(fragment.only = TRUE, text = c(
+                       "NÚMERO DE NOVOS CASOS E ÓBITOS PARA OS GERES SELECIONADOS"))),
+                     plotOutput("cases", height = 200),
+                     plotOutput("deaths", height = 200))
+                 
+                 ), 
+                 
+                 
+                 tabPanel(
+                   title = "3-Tabela resumo das linhagens",
+                   icon = icon('fas fa-table'),
+                   
+                   box(
+                     title = "Tabela A: Resumo das linhagens por Geres em Pernambuco",
+                     width = 12,
+                     status = 'danger',
+                     solidHeader = FALSE,
+                     
+                     htmlOutput('tablePE')
                    )
-                 ) ### aquí 
+                 )
+                 
+                 
+                 
                  
                  
                  
                  )
-              )
+               )
                ),
                
                

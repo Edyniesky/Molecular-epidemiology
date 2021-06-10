@@ -499,3 +499,165 @@ data <- metadata %>%
   
 paste("Última actualização", data$collection_data, sep = ": ")
 
+
+
+
+
+
+
+
+geres <- read_excel("municipios_geres.xlsx")
+
+report <- read_excel("report.xlsx") %>% 
+  clean_names()
+
+caso_full <- read_csv('https://data.brasil.io/dataset/covid19/caso_full.csv.gz')
+
+
+caso_full <- caso_full %>% 
+  select(date, state, city,new_confirmed, new_deaths) %>% 
+  filter(state == "PE", city != "Importados/Indefinidos") %>% 
+  mutate(city = stringr::str_to_upper(city), new_confirmed = abs(new_confirmed), new_deaths = abs(new_deaths)) %>% 
+  print()
+
+
+caso_full1 <- left_join(caso_full, geres, by = c("city" = "Municipio"))
+
+
+fileData <- reactiveFileReader(1000, NULL, 'data.csv', read.csv)
+
+caso_full <- read_csv('https://data.brasil.io/dataset/covid19/caso_full.csv.gz')
+
+caso_full2 <- caso_full1 %>% 
+  select(date, state, city, new_confirmed, new_deaths) %>% 
+  filter(state == "PE", city != "Importados/Indefinidos") %>%
+  print()
+
+
+caso_full1 <- left_join(caso_full, geres, by = c("city" = "Municipio"))
+
+caso_full1i <-caso_full1 %>% 
+  mutate(city = stringr::str_to_upper(city), new_confirmed = abs(new_confirmed), new_deaths = abs(new_deaths)) %>% 
+  filter(geres %in% c("II")) %>% 
+  group_by(date) %>% 
+  summarise(new_confirmed = sum(new_confirmed), new_deaths = sum(new_deaths)) %>% 
+  mutate(rollmeanC = round(rollmean(new_confirmed, k = 7, fill = NA, align = "right"), digits = 2),
+         rollmeanD = round(rollmean(new_deaths, k = 7, fill = NA, align = "right"), digits = 2)) %>% 
+  ungroup() %>% 
+  print()
+
+
+caso_full1i %>% 
+  ggplot(aes(x = date, y = new_confirmed)) + 
+  geom_bar(position = "stack", stat = 'identity', fill = '#C1CDCD', alpha = 0.7 ) +
+  geom_line(aes(y = rollmeanC), color = 'dodgerblue4', size = 1.2) +
+  #theme_half_open(font_size = 14) +
+  theme_clean() +
+  scale_x_date(date_labels = "%b , %y", date_breaks = "30 day") +
+  theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Data', y = 'Número de novos casos')
+
+
+caso_full1i %>% 
+  ggplot(aes(x = date, y = new_deaths)) + 
+  geom_bar(position = "stack", stat = 'identity', fill = '#C1CDCD', alpha = 0.7 ) +
+  geom_line(aes(y = rollmeanD), color = 'firebrick3', size = 1.2) +
+  theme_clean() +
+  scale_x_date(date_labels = "%b , %y", date_breaks = "30 day") +
+  theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
+  labs(x = 'Date', 
+       y = 'Number of new deaths')
+
+
+
+
+WHO <- function(x){
+  if (x == "B.1.1.7") {
+    rep("Alpha", length(x));
+  }else if (x == "B.1.351") {
+    rep("Beta", length(x));
+  } else if (x == "P.1") {
+    rep("Gamma", length(x)); 
+  }else if (x == "B.1.617.2") {
+    rep("Delta", length(x));
+  }else if (x == "B.1.427") {
+    rep("Epsilon", length(x));
+  } else if (x == "B.1.429") {
+    rep("Epsilon", length(x)); 
+  }else if (x == "P.2") {
+    rep("Zeta", length(x));
+  }else if (x == "B.1.525") {
+    rep("Eta", length(x));
+  } else if (x == "P.3") {
+    rep("Theta", length(x)); 
+  }else if (x == "B.1.526") {
+    rep("Iota", length(x));
+  }else if (x == "B.1.617.1") {
+    rep("Kappa", length(x));
+  }else{
+    rep("Sem classificação OMS", length(x)) 
+  }
+}
+
+
+report1 <- report %>% 
+  select(data_extracao, localizacao, lineage) %>% 
+  mutate(across( where(is.character), ~replace_na(., "NÃO INFORMADO"))) %>% 
+  filter(lineage != "NA") %>% 
+  rename(Municipio = localizacao, data = data_extracao) %>% 
+  group_by(Municipio) %>% 
+  count(lineage) %>% 
+  mutate(Municipio = if_else(Municipio == "VERTENTE DO LERIO", "VERTENTE DO LÉRIO",
+                             if_else(Municipio == "SOLIDAO", "SOLIDÃO",
+                                     if_else(Municipio == "CALCADO", "CALÇADO",
+                                             as.character(Municipio))))) %>% 
+  print()
+
+WHO <- function(x){
+  if (x == "B.1.1.7") {
+    rep("Alpha", length(x));
+  }else if (x == "B.1.351") {
+    rep("Beta", length(x));
+  } else if (x == "P.1") {
+    rep("Gamma", length(x)); 
+  }else if (x == "B.1.617.2") {
+    rep("Delta", length(x));
+  }else if (x == "B.1.427") {
+    rep("Epsilon", length(x));
+  } else if (x == "B.1.429") {
+    rep("Epsilon", length(x)); 
+  }else if (x == "P.2") {
+    rep("Zeta", length(x));
+  }else if (x == "B.1.525") {
+    rep("Eta", length(x));
+  } else if (x == "P.3") {
+    rep("Theta", length(x)); 
+  }else if (x == "B.1.526") {
+    rep("Iota", length(x));
+  }else if (x == "B.1.617.1") {
+    rep("Kappa", length(x));
+  }else{
+    rep("Sem classificação OMS", length(x)) 
+  }
+}
+
+
+report1i <- report1 %>% 
+  mutate(OMS = map(lineage, WHO)) %>% 
+  unnest(OMS) %>% 
+  print()
+
+
+
+geres <- geres %>%
+  mutate(Municipio = stringr::str_to_upper(Municipio),
+         Municipio = stringr::str_replace_all(Municipio, c(
+           "FREI MIGUELINO" = "FREI MIGUELINHO", 
+           "SÃO CAETANO" = "SÃO CAITANO", 
+           "ITAMARACÁ" = "ILHA DE ITAMARACÁ",
+           "IGUARACI" = "IGUARACY"
+         ))) %>% 
+  print()
+
+
+report1i <- left_join(report1i, geres)
