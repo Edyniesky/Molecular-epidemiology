@@ -41,7 +41,7 @@ library(readxl)
 library(sf)
 library(markdown)
 library(zoo)
-library(cowplot)
+#library(cowplot)
 
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
@@ -665,7 +665,7 @@ server <- function(input, output) {
         geom_line(aes(y = rollmeanC), color = 'dodgerblue4', size = 1.2) +
         #theme_half_open(font_size = 14) +
         theme_clean() +
-        scale_x_date(date_labels = "%b , %y", date_breaks = "60 day") +
+        scale_x_date(date_labels = "%b , %y", date_breaks = "30 day") +
         theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
         labs(x = 'Data', y = 'Número de novos casos')
     })
@@ -676,7 +676,7 @@ server <- function(input, output) {
       geom_bar(position = "stack", stat = 'identity', fill = '#C1CDCD', alpha = 0.7 ) +
       geom_line(aes(y = rollmeanD), color = 'firebrick3', size = 1.2) +
       theme_clean() +
-      scale_x_date(date_labels = "%b , %y", date_breaks = "60 day") +
+      scale_x_date(date_labels = "%b , %y", date_breaks = "30 day") +
       theme(axis.text = element_text(color = "dimgray", size = 12), axis.text.x = element_text(angle = 90, hjust = 1)) +
         labs(x = 'Data', 
              y = 'Número de novos óbitos')
@@ -867,9 +867,9 @@ body <- dashboardBody(
                    leafletOutput('map2i', height = 800),
                  
                    absolutePanel(
-                     #fixed = TRUE,
+                     fixed = TRUE,
                      draggable = TRUE, top = 300, left = "auto", right = 45, bottom = "auto",
-                     width = 380, height = "auto",
+                     width = 380, height = "auto", cursor = "auto",
                      
                      #wellPanel(
                        HTML(markdownToHTML(fragment.only = TRUE, text = c(
@@ -886,7 +886,8 @@ body <- dashboardBody(
                      HTML(markdownToHTML(fragment.only = TRUE, text = c(
                        "`Peremite escolher uma ou mais GERES`"))),
                      
-                     style = "opacity: 0.7",
+                     style = "opacity: 0.8",
+                     
                      HTML(markdownToHTML(fragment.only = TRUE, text = c(
                        "NÚMERO DE NOVOS CASOS E ÓBITOS PARA AS GERES SELECIONADAS"))),
                      plotOutput("cases", height = 200),

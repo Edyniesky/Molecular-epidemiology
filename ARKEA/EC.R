@@ -571,6 +571,8 @@ caso_full1i %>%
 
 
 
+
+
 WHO <- function(x){
   if (x == "B.1.1.7") {
     rep("Alpha", length(x));
@@ -661,3 +663,22 @@ geres <- geres %>%
 
 
 report1i <- left_join(report1i, geres)
+
+
+
+
+library(readxl)
+library(readr)
+library(tidyverse)
+
+geres <- read_excel("municipios_geres.xlsx")
+caso_full <- read_csv('https://data.brasil.io/dataset/covid19/caso_full.csv.gz')
+
+caso_full <- caso_full %>% 
+  select(date, state, city, new_confirmed, new_deaths) %>% 
+  filter(state == "PE", city != "Importados/Indefinidos") %>%
+  print()
+
+caso_full1 <- left_join(caso_full, geres, by = c("city" = "Municipio"))
+
+write.csv2(caso_full1, "caso_full.csv", sep = ";", dec = ".", col.names = TRUE, fileEncoding = "UTF-8")
