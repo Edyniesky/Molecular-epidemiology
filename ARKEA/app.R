@@ -41,7 +41,7 @@ library(readxl)
 library(sf)
 library(markdown)
 library(zoo)
-#library(cowplot)
+library(cowplot)
 
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
@@ -873,7 +873,7 @@ body <- dashboardBody(
                      
                      #wellPanel(
                        HTML(markdownToHTML(fragment.only = TRUE, text = c(
-                         "RESUMEN DE DATOS `COVID-19` PERNAMBUCO"))), #)
+                         "RESUMO DE DADOS `COVID-19` PERNAMBUCO"))), #)
                      
                      #sliderInput("n", "", min = 3, max = 20, value = 5),
                      selectInput(
@@ -888,7 +888,7 @@ body <- dashboardBody(
                      
                      style = "opacity: 0.7",
                      HTML(markdownToHTML(fragment.only = TRUE, text = c(
-                       "NÚMERO DE NOVOS CASOS E ÓBITOS PARA OS GERES SELECIONADOS"))),
+                       "NÚMERO DE NOVOS CASOS E ÓBITOS PARA AS GERES SELECIONADAS"))),
                      plotOutput("cases", height = 200),
                      plotOutput("deaths", height = 200))
                  
