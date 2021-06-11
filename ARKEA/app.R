@@ -41,7 +41,7 @@ library(readxl)
 library(sf)
 library(markdown)
 library(zoo)
-#library(cowplot)
+library(cowplot)
 
 #   __________________ #< beecd253476d735f7a42137013eae967 ># __________________
 #   Database cleaning                                                       ####
@@ -558,6 +558,7 @@ server <- function(input, output) {
     mapPE <- reactive({
       report2i %>% 
         filter(geres %in% c(input$gere))
+      
     })
     
     
@@ -774,8 +775,8 @@ sidebar <- dashboardSidebar(
         width = '400px',
         autoclose = TRUE
       ),
-      tags$p(HTML("<br>Permite filtrar os dados a partir de duas datas</br> adicionadas 
-                        manualmente ou selecionadas</br> diretamente na caixa de diálogo."), 
+      tags$p(HTML("<p align='justify'> Permite filtrar os dados a partir de duas datas</br> adicionadas 
+                        manualmente ou selecionadas</br> diretamente na caixa de diálogo</p>."), 
              style = "color:#FFFFFF")
     ),
     
@@ -1070,7 +1071,11 @@ body <- dashboardBody(
             #img(src="https://github.com/Edyniesky/logos-/raw/gh-pages/Captura2.png", height = 350, width = 350),
             
             HTML('<center><img src = "https://phil.cdc.gov//PHIL_Images/23313/23313_lores.jpg"                                width="400" height="250"></center>'), 
-            tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.</a><br>**Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco (IRRD)</a>.")),
+            tags$p(HTML("<br>*Os dados utilizados foram obtidos do site do <a href='https://www.gisaid.org/'><i>Global Influenza Surveillance and Response System</i><b> (GISRS)</b>.
+                        
+</a><br>**Os dados de Pernambuco foram sequenciados no <a href='https://www.ufpe.br/lika/'><i>Laboratório de Imunopatologia Keizo Asami <b>(LIKA-UFPE)</b>.
+
+</a><br>***Para mais informações sobre o coronavírus, você pode acessar o <a href='https://www.irrd.org/'>Instituto para Redução de Riscos e Desastres de Pernambuco <b>(IRRD)<b></a>.")),
             tags$p(h4(
               htmlOutput("date")
               )
