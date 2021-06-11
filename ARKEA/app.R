@@ -1,3 +1,4 @@
+
 ##%######################################################%##
 #                                                          #
 ####                     Packages                       ####
@@ -251,7 +252,7 @@ report2ii <- report2i %>%
   summarise(Total = sum(n)) %>% 
   ungroup() %>%
   mutate(Porcentagem = round(Total / sum(Total) * 100, digits = 2)) %>% 
-  rename(Geres = geres, `Pongo lineage` = lineage) %>% 
+  rename(GERES = geres, `Pongo lineage` = lineage) %>% 
   arrange(desc(Porcentagem))
 
 
