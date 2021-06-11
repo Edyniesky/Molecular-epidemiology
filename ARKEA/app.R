@@ -694,7 +694,7 @@ header <- dashboardHeader(
     title = shinyDashboardLogo(
         theme = "flat_red",
         boldText = "ARKEA DX Vigilância Molecular",
-        mainText = "",
+        #mainText = "APP",
         badgeText = "v0.0.2"
         ),
     
