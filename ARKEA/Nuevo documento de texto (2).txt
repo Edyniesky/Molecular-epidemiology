@@ -1,0 +1,99 @@
+ tabPanel("DADOS PERNAMBUCO", 
+               fluidPage(
+               tabsetPanel(
+      
+                 tabPanel(
+                   title = '1-Frequência de Linhagem (PANGO)',
+                   icon = icon('fas fa-chart-bar'),
+                   fluidPage(
+                         
+                     box(
+                       title = "Figura A: Número de linhagens (PANGO) por Municípios",
+                       status = 'danger',
+                       solidHeader = FALSE,
+                       #background = 'black',
+                       width = 12,
+                       height = 840,
+                       
+                       iheatmaprOutput(
+                         outputId = 'plotPE', 
+                         width = "100%", 
+                         height = "700px"
+                         )
+                       )
+                     )
+                   ), 
+                 tabPanel(
+                   title = '2-Dados espaciais PE',
+                   icon = icon('globe'),
+                   
+                   fluidPage(
+                     box(
+                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
+                       width = 12,
+                       status = 'danger',
+                       solidHeader = FALSE,
+      
+                       leafletOutput('map2i', height = 700)
+                   
+                       )
+                     )
+                   ) 
+                 )
+               )
+               ),
+
+
+
+
+
+
+
+tabPanel(
+                   title = '2-Dados espaciais PE',
+                   icon = icon('globe'),
+                   
+                   fluidPage(
+                     box(
+                       title = "Mapa A: Distribuição de linhagens (Pongo) por Municípios de Pernambuco ",
+                       width = 12,
+                       status = 'danger',
+                       solidHeader = FALSE,
+      
+                       leafletOutput('map2i', height = 700)
+                   
+                       )
+                     )
+                   ) 
+
+
+
+
+ tabPanel(
+                   title = '2-Dados espaciais PE',
+                   icon = icon('globe'),
+                   
+                   
+                   leafletOutput('map2i', height = 700)
+                 ,
+                 
+                 absolutePanel(
+                   ixed = TRUE,
+                   draggable = TRUE, top = 300, left = "auto", right = 20, bottom = "auto",
+                   width = 330, height = "auto",
+                   
+                   wellPanel(
+                     HTML(markdownToHTML(fragment.only = TRUE, text = c(
+                       "This is an absolutePanel that uses `bottom` and `right` attributes"))))))
+
+
+
+
+
+
+
+
+
+
+
+
