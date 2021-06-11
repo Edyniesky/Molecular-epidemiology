@@ -161,6 +161,8 @@ WHO <- function(x){
     rep("Beta", length(x));
   } else if (x == "P.1") {
     rep("Gamma", length(x)); 
+  } else if (x == "P.1.1") {
+    rep("Gamma", length(x));
   }else if (x == "B.1.617.2") {
     rep("Delta", length(x));
   }else if (x == "B.1.427") {
@@ -694,7 +696,7 @@ header <- dashboardHeader(
     title = shinyDashboardLogo(
         theme = "flat_red",
         boldText = "ARKEA DX Vigilância Molecular",
-        #mainText = "APP",
+        mainText = "",
         badgeText = "v0.0.2"
         ),
     
