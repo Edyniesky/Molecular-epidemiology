@@ -184,7 +184,7 @@ WHO <- function(x){
   }
 }
 
-report <- read_excel("report.xlsx") %>% 
+report <- read_excel("20210601_COVIDSEQ-2.xlsx") %>% 
   clean_names()
 
 report1 <- report %>% 
