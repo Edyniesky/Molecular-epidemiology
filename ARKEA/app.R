@@ -195,7 +195,10 @@ report1 <- report %>%
   mutate(Municipio = stringr::str_replace_all(Municipio, c(
     "SOLIDAO" = "SOLIDÃO",
     "VERTENTE DO LERIO" = "VERTENTE DO LÉRIO",
-    "CALCADO" = "CALÇADO"))) %>% 
+    "CALCADO" = "CALÇADO",
+    "JATAUBA" = "JATAÚBA",
+    "NAZARE DA MATA" = "NAZARÉ DA MATA",
+    "VITORIA DE SANTO ANTAO" = "VITÓRIA DE SANTO ANTÃO"))) %>% 
   group_by(Municipio) %>% 
   count(lineage) %>% 
   ungroup()
