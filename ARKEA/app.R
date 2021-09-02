@@ -51,7 +51,8 @@ library(cowplot)
 
 
 metadata <- read_delim("nextstrain_ncov_global_metadata.tsv",  "\t", escape_double = FALSE, trim_ws = TRUE) %>% 
-    filter(Region != "Alexandr Shevtsov et al")
+  rename(Region = region, Country = country, `PANGO Lineage` = pango_lineage, `Admin Division` = division) %>% 
+  filter(Region != "Alexandr Shevtsov et al")
 
 entropy <- read_delim("nextstrain_ncov_global_diversity.tsv", "\t", escape_double = FALSE, trim_ws = TRUE)
 
@@ -103,8 +104,7 @@ gis.data <- metadata %>%
            `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "RONDONIA", "RONDÔNIA", `Admin Division`)) %>% 
     clean_names() %>% 
-    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
-           originating_lab, author)
+    select(strain, country, admin_division, pango_lineage, date, originating_lab, originating_lab, author, ) #age, sex, clade,  , 
 
 table <- metadata %>% 
     #filter(Country == "Brazil") %>% 
@@ -116,17 +116,17 @@ table <- metadata %>%
            `Admin Division` = ifelse(`Admin Division` == "PARA", "PARÁ", `Admin Division`),
            `Admin Division` = ifelse(`Admin Division` == "RONDONIA", "RONDÔNIA", `Admin Division`)) %>% 
     clean_names() %>% 
-    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
-           originating_lab, author) %>% 
-    rename(Linhagem = strain, País = country, Estados = admin_division, Idade = age, Sexo = sex, `Linhagem (Pongo)` = pango_lineage,
-           Clade = clade, `laboratório de origem` = originating_lab, `Data de coleta` = collection_data, 
-           Autor = author)
+    select(strain, country, admin_division, pango_lineage, date, originating_lab,  
+           originating_lab, author) %>% #age, sex,,clade,
+    rename(Linhagem = strain, País = country, Estados = admin_division, `Linhagem (Pongo)` = pango_lineage, `Data de coleta` = date,
+           `laboratório de origem` = originating_lab,  
+           Autor = author) # Idade = age, Sexo = sex,Clade = clade, ,
 
 gis.data <- left_join(gis.data, cent, by = c("admin_division" = "NM_ESTADO"))
 
 gis.datai <- gis.data %>% 
-    select(strain, country, admin_division, age, sex, pango_lineage, clade, originating_lab, collection_data, 
-           originating_lab, author, x_cent, y_cent) %>% 
+    select(strain, country, admin_division,  pango_lineage, date, originating_lab,  
+           originating_lab, author, x_cent, y_cent) %>%  #age, sex,clade, collection_data,
     group_by(admin_division, x_cent, y_cent) %>% 
     count(pango_lineage) %>% 
     spread(pango_lineage, n, fill = 0) %>% 
@@ -144,12 +144,13 @@ customGreen <- "#BFEFFF"
 data <- metadata %>% 
   clean_names() %>% 
   #filter(country == "Brazil") %>% 
-  select(collection_data) %>% 
-  mutate(collection_data = as_date(collection_data)) %>% 
-  arrange(desc(collection_data)) %>% 
-  mutate(collection_data = first(collection_data)) %>% 
+  select(date) %>% 
+  mutate(date = as_date(date)) %>% 
+  arrange(desc(date)) %>% 
+  mutate(date = first(date)) %>% 
   distinct() %>% 
-  mutate(collection_data = format(as.Date(collection_data), format = "%d %B %Y"))
+  mutate(date = format(as.Date(date), format = "%d %B %Y")) %>% 
+  print()
 
 
 ### Pernambuco data 
@@ -363,7 +364,7 @@ server <- function(input, output) {
   '}))
     
     output$date <- renderUI({
-      paste("Última atualização", data$collection_data, sep = ": ")
+      paste("Última atualização", data$date, sep = ": ")
     })
     
     
@@ -373,12 +374,12 @@ server <- function(input, output) {
     dataPong <- reactive({
         metadata %>% 
             filter(Country == "Brazil", `PANGO Lineage` %in% c(input$pango), 
-                   `Collection Data` >= input$dateSelect[1] & 
-                    `Collection Data` <= input$dateSelect[2]) %>% 
-            group_by(`Collection Data`, `PANGO Lineage`) %>% # Admin Division
+                   date >= input$dateSelect[1] & 
+                    date <= input$dateSelect[2]) %>% 
+            group_by(date, `PANGO Lineage`) %>% # Admin Division
             count(`PANGO Lineage`) %>% 
             ungroup() %>% 
-            rename(data = `Collection Data`, total = n, Linage = `PANGO Lineage`)
+            rename(data = date, total = n, Linage = `PANGO Lineage`)
         })
     
     output$plot1 <-  renderPlotly({
