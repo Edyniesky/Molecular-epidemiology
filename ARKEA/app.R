@@ -179,6 +179,8 @@ WHO <- function(x){
     rep("Iota", length(x));
   }else if (x == "B.1.617.1") {
     rep("Kappa", length(x));
+  }else if (x == "C.37") {
+    rep("Lambda", length(x));
   }else{
     rep("Pouco interesse para saúde", length(x)) 
   }
